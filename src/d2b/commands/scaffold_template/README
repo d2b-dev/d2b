@@ -1,0 +1,8 @@
+Please remember to populate the following files with your dataset's information:
+
+- README (This document!)
+- dataset_description.json
+- participants.tsv
+- participants.json
+
+participants.tsv and participants.json have _example_ data taken directly from the BIDS specification (https://bids-specification.readthedocs.io/en/v1.6.0/03-modality-agnostic-files.html#participants-file).

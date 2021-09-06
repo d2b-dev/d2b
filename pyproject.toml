@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "d2b"
+version = "1.0.0"
+description = "Organize data in the BIDS format"
+authors = ["Andrew Ross <andrew.ross.mail@gmail.com>"]
+
+readme = "README.md"
+
+keywords = ["neuroscience", "neuroimaging", "bids", "cli", "tool"]
+
+homepage = "https://github.com/d2b-dev/d2b"
+repository = "https://github.com/d2b-dev/d2b"
+documentation = "https://github.com/d2b-dev/d2b"
+
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0,<4.0"
+pluggy = ">=0.12,<1.0.0a1"
+
+[tool.poetry.dev-dependencies]
+black = "^21.7b0"
+flake8 = "^3.9.2"
+pylint = "^2.10.2"
+reorder-python-imports = "^2.6.0"
+pre-commit = "^2.14.0"
+bump2version = "^1.0.1"
+pytest = "^6.2.4"
+pytest-mock = "^3.6.1"
+
+[tool.poetry.scripts]
+d2b = 'd2b.cli:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
