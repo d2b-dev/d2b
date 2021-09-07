@@ -300,7 +300,7 @@ class Matcher:
             if intended_for is None:
                 continue
 
-            elif isinstance(intended_for, int):
+            elif isinstance(intended_for, int) or isinstance(intended_for, str):
                 target_acq = self._resolve_intended_for(self.acquisitions, intended_for)
                 if target_acq is None:
                     continue
@@ -310,15 +310,16 @@ class Matcher:
                 acq.data["IntendedFor"] = str(fp)
 
             elif isinstance(intended_for, list):
-                for desc_idx in intended_for:
+                for _intended_for in intended_for:
                     target_acq = self._resolve_intended_for(
                         self.acquisitions,
-                        desc_idx,
+                        _intended_for,
                     )
                     if target_acq is None:
                         continue
                     if acq.data.get("IntendedFor") is None:
                         acq.data["IntendedFor"] = []
+                    # TODO: the suffix could in theory be wrong here (i.e. just .nii)
                     bids_path = target_acq.dst_root.with_suffix(".nii.gz")
                     fp = bids_path.relative_to(target_acq.participant.subject_directory)
                     acq.data["IntendedFor"].append(str(fp))
@@ -332,9 +333,23 @@ class Matcher:
     @staticmethod
     def _resolve_intended_for(
         acquisitions: list[Acquisition],
-        intended_for: int,
+        intended_for: int | str,
     ) -> Acquisition | None:
-        match_refs = [a for a in acquisitions if a.description.index == intended_for]
+        if isinstance(intended_for, int):
+            match_refs = [
+                a for a in acquisitions if a.description.index == intended_for
+            ]
+        elif isinstance(intended_for, str):
+            match_refs = [
+                a for a in acquisitions if a.description.data.get("id") == intended_for
+            ]
+        else:
+            msg = (
+                "IntendedFor field must be of type int | str | (int | str)[]. "
+                f"Found [{intended_for!r}]"
+            )
+            raise ValueError(msg)
+
         if len(match_refs) == 0:
             # this case can happen if IntendedFor references a
             # description for which there was no match. In this
@@ -460,7 +475,7 @@ class Description:
         modality_label: str,
         custom_labels: str | dict[str, str] = "",
         sidecar_changes: dict[str, Any] | None = None,
-        intended_for: int | list[int] | None = None,
+        intended_for: int | str | list[int | str] | None = None,
         data: dict[str, Any] = None,
     ):
         self.index = index
