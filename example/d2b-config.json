@@ -32,6 +32,7 @@
             }
         },
         {
+            "id": "my-dwi",
             "dataType": "dwi",
             "modalityLabel": "dwi",
             "criteria": {
@@ -60,9 +61,20 @@
             "dataType": "fmap",
             "modalityLabel": "fmap",
             "criteria": {
-                "SidecarFilename": "*echo-4*"
+                "SidecarFilename": "*echo-2*"
             },
             "IntendedFor": 5
+        },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "fmap",
+            "criteria": {
+                "SidecarFilename": "*echo-3*"
+            },
+            "IntendedFor": [
+                5,
+                "my-dwi"
+            ]
         }
     ]
 }
