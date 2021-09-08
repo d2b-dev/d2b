@@ -554,14 +554,14 @@ class Description:
 
     @property
     def custom_labels(self):
-        return self._custom_labels
+        return prepend(str(self._custom_labels), "_")
 
     @custom_labels.setter
     def custom_labels(self, val: str | dict[str, str]):
-        _v = val
-        if isinstance(_v, dict):
-            _v = "_".join(f"{k}-{v}" for k, v in _v.items())
-        self._custom_labels = prepend(_v, "_")
+        if isinstance(val, str):
+            self._custom_labels = FilenameEntities.from_string(val)
+        else:
+            self._custom_labels = FilenameEntities(val)
 
     # computed properties
     @property
@@ -587,3 +587,77 @@ def _setup_logging(log_level, logFile=None):
         handler.setFormatter(formatter)
         handler.setLevel("DEBUG")
         logger.addHandler(handler)
+
+
+class FilenameEntities:
+    # the order matters (BIDS v1.6 - https://bids-specification.readthedocs.io/en/v1.6.0/99-appendices/09-entities.html#trc) # noqa: E501
+    KNOWN_ENTITIES = (
+        "sub",
+        "ses",
+        "task",
+        "acq",
+        "ce",
+        "trc",
+        "rec",
+        "dir",
+        "run",
+        "mod",
+        "echo",
+        "flip",
+        "inv",
+        "mt",
+        "part",
+        "recording",
+        "proc",
+        "space",
+        "split",
+        "res",
+        "den",
+        "label",
+        "desc",
+    )
+
+    def __init__(self, entities: dict[str, str]):
+        self.entities = self.parse(entities)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({dict(self)!r})"
+
+    def __str__(self):
+        return "_".join(f"{k}-{v}" for k, v in self)
+
+    def __iter__(self) -> Iterator[tuple[str, str]]:
+        _d = self.entities.copy()
+
+        for k in self.KNOWN_ENTITIES:
+            v = _d.pop(k, None)
+            if v is None:
+                continue
+            yield (k, v)
+
+        for k, v in _d.items():
+            yield (k, v)
+
+    @classmethod
+    def from_string(cls, s: str):
+        return cls(cls.parse(s))
+
+    @classmethod
+    def parse(cls, entities: str | dict[str, str]) -> dict[str, str]:
+        if isinstance(entities, dict):
+            return entities
+        entity_strs = entities.strip("_").split("_")
+        return dict(map(cls._split_entity_str, entity_strs))
+
+    @staticmethod
+    def _split_entity_str(s: str) -> tuple[str, str]:
+        parts = s.split("-")
+        if len(parts) < 2:
+            m = (
+                f"Failed parsing entity string [{s}]. "
+                "String must have at least one hyphen."
+            )
+            raise ValueError(m)
+        k = parts[0]
+        v = "".join(filter(str.isalnum, "".join(parts[1:])))
+        return k, v
