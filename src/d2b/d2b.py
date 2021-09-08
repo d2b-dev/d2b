@@ -15,6 +15,7 @@ from typing import TypeVar
 
 from d2b import defaults
 from d2b.plugins import pm
+from d2b.utils import associated_nii_ext
 from d2b.utils import prepend
 from d2b.utils import rsync
 from d2b.utils import splitext
@@ -301,27 +302,18 @@ class Matcher:
                 continue
 
             elif isinstance(intended_for, int) or isinstance(intended_for, str):
-                target_acq = self._resolve_intended_for(self.acquisitions, intended_for)
-                if target_acq is None:
+                fp = self._resolve_intended_for_path(acq, intended_for)
+                if fp is None:
                     continue
-                # TODO: the suffix could in theory be wrong here (i.e. just .nii)
-                bids_path = target_acq.dst_root.with_suffix(".nii.gz")
-                fp = bids_path.relative_to(target_acq.participant.subject_directory)
                 acq.data["IntendedFor"] = str(fp)
 
             elif isinstance(intended_for, list):
                 for _intended_for in intended_for:
-                    target_acq = self._resolve_intended_for(
-                        self.acquisitions,
-                        _intended_for,
-                    )
-                    if target_acq is None:
+                    fp = self._resolve_intended_for_path(acq, _intended_for)
+                    if fp is None:
                         continue
                     if acq.data.get("IntendedFor") is None:
                         acq.data["IntendedFor"] = []
-                    # TODO: the suffix could in theory be wrong here (i.e. just .nii)
-                    bids_path = target_acq.dst_root.with_suffix(".nii.gz")
-                    fp = bids_path.relative_to(target_acq.participant.subject_directory)
                     acq.data["IntendedFor"].append(str(fp))
 
             else:
@@ -329,6 +321,21 @@ class Matcher:
                     f"Invalid IntendedFor value [{intended_for}] in "
                     f"description at index [{description.index}]",
                 )
+
+    def _resolve_intended_for_path(
+        self,
+        acq: Acquisition,
+        intended_for: int | str,
+    ) -> Path | None:
+        target_acq = self._resolve_intended_for(self.acquisitions, intended_for)
+        if target_acq is None:
+            return
+        ext = associated_nii_ext(target_acq.src_file)
+        if ext is None:
+            self._log_associated_nii_not_found(acq, target_acq)
+            return
+        bids_path = target_acq.dst_root.with_suffix(ext)
+        return bids_path.relative_to(target_acq.participant.subject_directory)
 
     @staticmethod
     def _resolve_intended_for(
@@ -358,6 +365,15 @@ class Matcher:
             return
 
         return match_refs[0]
+
+    def _log_associated_nii_not_found(self, acq: Acquisition, target_acq: Acquisition):
+        msg = (
+            f"No NIfTI file associated with file [{target_acq.src_file}]. "
+            "This acquisition was determined to be one of the IntendedFor "
+            f"acquisitions for the file [{acq.src_file}] matching description "
+            f"at index [{acq.description.index}]"
+        )
+        self.logger.warning(msg)
 
 
 class Acquisition:
