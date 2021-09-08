@@ -1,80 +1,99 @@
 {
   "searchMethod": "fnmatch",
+  "caseSensitive": true,
   "descriptions": [
     {
       "dataType": "anat",
       "modalityLabel": "T1w",
+      "customLabels": "acq-moco",
+      "sidecarChanges": {
+        "anyKey": "anyValue"
+      },
       "criteria": {
-        "SeriesDescription": "*T1W_3D*"
-      }
-    },
-    {
-      "dataType": "anat",
-      "modalityLabel": "T2w",
-      "criteria": {
-        "SidecarFilename": "007*",
-        "EchoTime": 0.1
-      }
-    },
-    {
-      "dataType": "anat",
-      "modalityLabel": "PD",
-      "criteria": {
-        "SeriesDescription": "*TSE*",
-        "EchoTime": 0.008
-      }
-    },
-    {
-      "dataType": "anat",
-      "modalityLabel": "FLAIR",
-      "criteria": {
-        "SeriesDescription": "*FLAIR*"
-      }
-    },
-    {
-      "id": "my-dwi",
-      "dataType": "dwi",
-      "modalityLabel": "dwi",
-      "criteria": {
-        "SeriesDescription": "*DWI*"
-      }
-    },
-    {
-      "dataType": "anat",
-      "modalityLabel": "SWI",
-      "criteria": {
-        "SeriesDescription": "*SWI*"
-      }
+        "filename": "*T1W_3D*"
+      },
+      "IntendedFor": 0
     },
     {
       "dataType": "func",
-      "modalityLabel": "bold",
-      "customLabels": "task-rest",
-      "criteria": {
-        "SeriesDescription": "rs_fMRI"
-      },
+      "modalityLabel": "_bold",
+      "customLabels": "task-fingertap",
       "sidecarChanges": {
-        "SeriesDescription": "rsfMRI"
+        "newKey": "newValue"
+      },
+      "criteria": {
+        "SidecarFilename": "*Tap*"
+      }
+    },
+    {
+      "id": "my-func-img",
+      "dataType": "func",
+      "modalityLabel": "_bold",
+      "customLabels": "task-rest",
+      "sidecarChanges": {
+        "anotherKey": "anotherValue"
+      },
+      "criteria": {
+        "filename": "*Resting*"
       }
     },
     {
       "dataType": "fmap",
-      "modalityLabel": "fmap",
-      "criteria": {
-        "SidecarFilename": "*echo-2*"
+      "modalityLabel": "_fmap",
+      "sidecarChanges": {
+        "yetAnotherKey": "yetAnotherValue"
       },
-      "IntendedFor": 5
+      "criteria": {
+        "filename": "*SomeFmap*"
+      },
+      "IntendedFor": [
+        1,
+        "my-func-img"
+      ]
     },
     {
       "dataType": "fmap",
-      "modalityLabel": "fmap",
+      "modalityLabel": "_fmap",
       "criteria": {
-        "SidecarFilename": "*echo-3*"
+        "filename": "*SecondFmap*"
       },
-      "IntendedFor": [
-        5,
-        "my-dwi"
+      "IntendedFor": 1
+    },
+    {
+      "id": "my-asl",
+      "dataType": "perf",
+      "modalityLabel": "asl",
+      "criteria": {
+        "ProtocolName": "ep2d_pasl"
+      },
+      "sidecarChanges": {
+        "ArterialSpinLabelingType": "PASL",
+        "PostLabelingDelay": 1.8,
+        "M0Type": "Included"
+      },
+      "aslContext": [
+        "m0scan",
+        "control",
+        "label",
+        "control",
+        "label",
+        "control",
+        "label",
+        "control",
+        "label",
+        "control",
+        "label",
+        "control",
+        "label"
       ]
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "_fmap",
+      "criteria": {
+        "filename": "*AnotherFmap*"
+      },
+      "IntendedFor": "my-asl"
     }
   ]
 }
