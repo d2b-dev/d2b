@@ -75,3 +75,23 @@ def compare(
         return fnmatch(name, pattern)
     else:
         return fnmatch(name.lower(), pattern.lower())
+
+
+def associated_nii_ext(fp: str | Path) -> str | None:
+    """Returns .nii, .nii.gz, or None.
+
+    The suffix returned matches the first file found which shares a
+    file root (parent dir + stem) with `fp`. `None` is returned if no
+    matching nii file is found.
+    """
+    nii = first_nii(fp)
+    if nii is None:
+        return
+    _, ext = splitext(fp)
+    return ext
+
+
+def first_nii(fp: str | Path) -> Path | None:
+    root, _ = splitext(fp)
+    niis = sorted(root.parent.glob(f"{root.stem}.nii*"))
+    return niis[0] if len(niis) else None
