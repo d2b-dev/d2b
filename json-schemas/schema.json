@@ -1,0 +1,368 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://github.com/d2b-dev/d2b/json-schemas/schema.json",
+  "type": "object",
+  "title": "Config file for use with d2b",
+  "default": {},
+  "examples": [
+    {
+      "searchMethod": "fnmatch",
+      "caseSensitive": true,
+      "descriptions": [
+        {
+          "dataType": "anat",
+          "modalityLabel": "T1w",
+          "customLabels": "acq-moco",
+          "sidecarChanges": {
+            "anyKey": "anyValue"
+          },
+          "criteria": {
+            "filename": "*T1W_3D*"
+          },
+          "IntendedFor": 0
+        },
+        {
+          "dataType": "func",
+          "modalityLabel": "_bold",
+          "customLabels": "task-fingertap",
+          "sidecarChanges": {
+            "newKey": "newValue"
+          },
+          "criteria": {
+            "SidecarFilename": "*Tap*"
+          }
+        },
+        {
+          "id": "my-func-img",
+          "dataType": "func",
+          "modalityLabel": "_bold",
+          "customLabels": "task-rest",
+          "sidecarChanges": {
+            "anotherKey": "anotherValue"
+          },
+          "criteria": {
+            "filename": "*Resting*"
+          }
+        },
+        {
+          "dataType": "fmap",
+          "modalityLabel": "_fmap",
+          "sidecarChanges": {
+            "yetAnotherKey": "yetAnotherValue"
+          },
+          "criteria": {
+            "filename": "*SomeFmap*"
+          },
+          "IntendedFor": [
+            1,
+            "my-func-img"
+          ]
+        },
+        {
+          "dataType": "fmap",
+          "modalityLabel": "_fmap",
+          "criteria": {
+            "filename": "*SecondFmap*"
+          },
+          "IntendedFor": 1
+        },
+        {
+          "id": "my-asl",
+          "dataType": "perf",
+          "modalityLabel": "asl",
+          "criteria": {
+            "ProtocolName": "ep2d_pasl"
+          },
+          "sidecarChanges": {
+            "ArterialSpinLabelingType": "PASL",
+            "PostLabelingDelay": 1.8,
+            "M0Type": "Included"
+          },
+          "aslContext": [
+            "m0scan",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label"
+          ]
+        },
+        {
+          "dataType": "fmap",
+          "modalityLabel": "_fmap",
+          "criteria": {
+            "filename": "*AnotherFmap*"
+          },
+          "IntendedFor": "my-asl"
+        }
+      ]
+    }
+  ],
+  "required": [
+    "descriptions"
+  ],
+  "properties": {
+    "searchMethod": {
+      "$id": "#/properties/searchMethod",
+      "type": "string",
+      "title": "The search method used by d2b",
+      "description": "This field determines how d2b interprets property values found in each crieteria object. If omitted then the search method used is 'fnmatch'.",
+      "default": "fnmatch",
+      "enum": [
+        "fnmatch",
+        "re"
+      ]
+    },
+    "caseSensitive": {
+      "$id": "#/properties/caseSensitive",
+      "type": "boolean",
+      "title": "Whether to compare criteria properties in a case sensitive-manner.",
+      "description": "This only applies if searchmethod is 'fnmatch'",
+      "default": true
+    },
+    "descriptions": {
+      "$id": "#/properties/descriptions",
+      "type": "array",
+      "title": "An array of file descriptions",
+      "default": [],
+      "examples": [
+        [
+          {
+            "dataType": "",
+            "modalityLabel": "",
+            "customLabels": {},
+            "sidecarChanges": {},
+            "criteria": {
+              "filename": ""
+            },
+            "IntendedFor": []
+          }
+        ]
+      ],
+      "items": {
+        "$id": "#/properties/descriptions/items",
+        "type": "object",
+        "title": "A description of a file.",
+        "description": "d2b (and associated plugins) will use these descriptions when searching for files to convert into a BIDS-compliant dataset.",
+        "default": {},
+        "examples": [
+          {
+            "dataType": "",
+            "modalityLabel": "",
+            "customLabels": {},
+            "sidecarChanges": {},
+            "criteria": {
+              "filename": ""
+            },
+            "IntendedFor": []
+          }
+        ],
+        "required": [
+          "dataType",
+          "modalityLabel",
+          "criteria"
+        ],
+        "properties": {
+          "id": {
+            "$id": "#/properties/descriptions/items/properties/id",
+            "type": "string",
+            "title": "An ID for this description",
+            "description": "These IDs can be used as values in the IntendedFor fields as an alternative way for IntendedFor to reference a description.",
+            "default": ""
+          },
+          "dataType": {
+            "$id": "#/properties/descriptions/items/properties/dataType",
+            "type": "string",
+            "title": "A functional group of different types of data.",
+            "enum": [
+              "func",
+              "dwi",
+              "fmap",
+              "anat",
+              "perf",
+              "meg",
+              "eeg",
+              "ieeg",
+              "beh"
+            ]
+          },
+          "modalityLabel": {
+            "$id": "#/properties/descriptions/items/properties/modalityLabel",
+            "type": "string",
+            "title": "The category of brain data recorded by a file.",
+            "description": "This will be used as the suffix for acquisitions matching this description. The modality may overlap with, but should not be confused with the data type.",
+            "default": "",
+            "examples": [
+              "T1w",
+              "_bold"
+            ]
+          },
+          "customLabels": {
+            "$id": "#/properties/descriptions/items/properties/customLabels",
+            "title": "Additional enitities",
+            "description": "Additional entities, or key-value pairs to inject into the filenames of acquisitions matching this description. Useful to distinguish acquisitions which otherwise have matching dataType and modalityLabel fields.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "task": {
+                    "type": "string"
+                  },
+                  "acq": {
+                    "type": "string"
+                  },
+                  "ce": {
+                    "type": "string"
+                  },
+                  "trc": {
+                    "type": "string"
+                  },
+                  "rec": {
+                    "type": "string"
+                  },
+                  "dir": {
+                    "type": "string"
+                  },
+                  "run": {
+                    "type": "string"
+                  },
+                  "mod": {
+                    "type": "string"
+                  },
+                  "echo": {
+                    "type": "string"
+                  },
+                  "flip": {
+                    "type": "string"
+                  },
+                  "inv": {
+                    "type": "string"
+                  },
+                  "mt": {
+                    "type": "string"
+                  },
+                  "part": {
+                    "type": "string"
+                  },
+                  "recording": {
+                    "type": "string"
+                  },
+                  "proc": {
+                    "type": "string"
+                  },
+                  "space": {
+                    "type": "string"
+                  },
+                  "split": {
+                    "type": "string"
+                  },
+                  "res": {
+                    "type": "string"
+                  },
+                  "den": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "desc": {
+                    "type": "string"
+                  },
+                  "additionalProperties": true
+                }
+              }
+            ],
+            "default": {},
+            "examples": [
+              "task-rest_dir-AP",
+              {
+                "task": "rest",
+                "dir": "AP"
+              }
+            ]
+          },
+          "sidecarChanges": {
+            "$id": "#/properties/descriptions/items/properties/sidecarChanges",
+            "type": "object",
+            "title": "Key-value pairs to merge into sidecars matching this description.",
+            "description": "You can override existing sidecar properties/values or add new ones.",
+            "default": {},
+            "additionalProperties": true
+          },
+          "criteria": {
+            "$id": "#/properties/descriptions/items/properties/criteria",
+            "type": "object",
+            "title": "The criteria describing a file/acquisition of interest.",
+            "description": "This entries will be used to determine if an acquisition should pair with this description. If search method is 'fnmatch' then the values in this object can (should) be glob patterns. If searchMethod is 're' then the values in this object are treated as regular expressions.",
+            "default": {
+              "filename": "",
+              "ProtocolName": ""
+            },
+            "properties": {
+              "filename": {
+                "$id": "#/properties/descriptions/items/properties/criteria/properties/filename",
+                "type": "string",
+                "title": "The filename pattern to search for.",
+                "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This field is equivalent to the 'SidecarFilename' property.",
+                "default": ""
+              },
+              "SidecarFilename": {
+                "$id": "#/properties/descriptions/items/properties/criteria/properties/SidecarFilename",
+                "type": "string",
+                "title": "The filename pattern to search for.",
+                "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This field is equivalent to the 'filename' property.",
+                "default": ""
+              }
+            },
+            "additionalProperties": true
+          },
+          "IntendedFor": {
+            "$id": "#/properties/descriptions/items/properties/IntendedFor",
+            "title": "The description(s) that this description is intended for",
+            "description": "Acquisitions matching this description will have their sidecars injected with file path(s) of the acquisitions which match the descriptions referenced here. IMPORTANT: integer(s) here reference the zero-based position of descriptions in this file, while string(s) reference/are compared to description.id fields.",
+            "anyOf": [
+              {
+                "$ref": "#/definitions/intOrString"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/intOrString"
+                }
+              }
+            ],
+            "default": [],
+            "examples": [
+              0,
+              "",
+              []
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "definitions": {
+    "intOrString": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
+}
