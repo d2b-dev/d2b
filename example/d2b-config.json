@@ -1,80 +1,80 @@
 {
-    "searchMethod": "fnmatch",
-    "descriptions": [
-        {
-            "dataType": "anat",
-            "modalityLabel": "T1w",
-            "criteria": {
-                "SeriesDescription": "*T1W_3D*"
-            }
-        },
-        {
-            "dataType": "anat",
-            "modalityLabel": "T2w",
-            "criteria": {
-                "SidecarFilename": "007*",
-                "EchoTime": 0.1
-            }
-        },
-        {
-            "dataType": "anat",
-            "modalityLabel": "PD",
-            "criteria": {
-                "SeriesDescription": "*TSE*",
-                "EchoTime": 0.008
-            }
-        },
-        {
-            "dataType": "anat",
-            "modalityLabel": "FLAIR",
-            "criteria": {
-                "SeriesDescription": "*FLAIR*"
-            }
-        },
-        {
-            "id": "my-dwi",
-            "dataType": "dwi",
-            "modalityLabel": "dwi",
-            "criteria": {
-                "SeriesDescription": "*DWI*"
-            }
-        },
-        {
-            "dataType": "anat",
-            "modalityLabel": "SWI",
-            "criteria": {
-                "SeriesDescription": "*SWI*"
-            }
-        },
-        {
-            "dataType": "func",
-            "modalityLabel": "bold",
-            "customLabels": "task-rest",
-            "criteria": {
-                "SeriesDescription": "rs_fMRI"
-            },
-            "sidecarChanges": {
-                "SeriesDescription": "rsfMRI"
-            }
-        },
-        {
-            "dataType": "fmap",
-            "modalityLabel": "fmap",
-            "criteria": {
-                "SidecarFilename": "*echo-2*"
-            },
-            "IntendedFor": 5
-        },
-        {
-            "dataType": "fmap",
-            "modalityLabel": "fmap",
-            "criteria": {
-                "SidecarFilename": "*echo-3*"
-            },
-            "IntendedFor": [
-                5,
-                "my-dwi"
-            ]
-        }
-    ]
+  "searchMethod": "fnmatch",
+  "descriptions": [
+    {
+      "dataType": "anat",
+      "modalityLabel": "T1w",
+      "criteria": {
+        "SeriesDescription": "*T1W_3D*"
+      }
+    },
+    {
+      "dataType": "anat",
+      "modalityLabel": "T2w",
+      "criteria": {
+        "SidecarFilename": "007*",
+        "EchoTime": 0.1
+      }
+    },
+    {
+      "dataType": "anat",
+      "modalityLabel": "PD",
+      "criteria": {
+        "SeriesDescription": "*TSE*",
+        "EchoTime": 0.008
+      }
+    },
+    {
+      "dataType": "anat",
+      "modalityLabel": "FLAIR",
+      "criteria": {
+        "SeriesDescription": "*FLAIR*"
+      }
+    },
+    {
+      "id": "my-dwi",
+      "dataType": "dwi",
+      "modalityLabel": "dwi",
+      "criteria": {
+        "SeriesDescription": "*DWI*"
+      }
+    },
+    {
+      "dataType": "anat",
+      "modalityLabel": "SWI",
+      "criteria": {
+        "SeriesDescription": "*SWI*"
+      }
+    },
+    {
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": "task-rest",
+      "criteria": {
+        "SeriesDescription": "rs_fMRI"
+      },
+      "sidecarChanges": {
+        "SeriesDescription": "rsfMRI"
+      }
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "criteria": {
+        "SidecarFilename": "*echo-2*"
+      },
+      "IntendedFor": 5
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "criteria": {
+        "SidecarFilename": "*echo-3*"
+      },
+      "IntendedFor": [
+        5,
+        "my-dwi"
+      ]
+    }
+  ]
 }
