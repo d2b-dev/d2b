@@ -48,7 +48,7 @@ def is_link(
     for tag, pattern in criteria.items():
         tagValue = data.get(tag, "")
 
-        if tag == "SidecarFilename":
+        if tag == "filename" or tag == "SidecarFilename":
             # check the file name of the sidecar
             result.append(compare(path.name, pattern, search_method, case_sensitive))
 
