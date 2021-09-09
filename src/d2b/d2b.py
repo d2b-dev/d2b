@@ -413,6 +413,14 @@ class Acquisition:
         return splitext(self.src_file)[0]
 
     @property
+    def dst_root_no_modality(self) -> Path:
+        dtype_dir = self.participant.directory / self.description.data_type
+        return (
+            dtype_dir
+            / f"{self.participant.prefix}{self.description.suffix_no_modality}"
+        )
+
+    @property
     def dst_root(self) -> Path:
         dtype_dir = self.participant.directory / self.description.data_type
         return dtype_dir / f"{self.participant.prefix}{self.description.suffix}"
@@ -480,10 +488,9 @@ class Participant:
         return Path(self.bids_label)
 
 
-DATATYPES = ["func", "dwi", "fmap", "anat", "perf", "meg", "eeg", "ieeg", "beh"]
-
-
 class Description:
+    DATATYPES = ["anat", "beh", "dwi", "eeg", "fmap", "func", "ieeg", "meg", "perf"]
+
     def __init__(
         self,
         index: int,
@@ -539,8 +546,8 @@ class Description:
 
     @data_type.setter
     def data_type(self, val: str):
-        if val not in DATATYPES:
-            msg = f"Description dataType must be one of {DATATYPES}. Found [{val}]"
+        if val not in self.DATATYPES:
+            msg = f"Description dataType must be one of {self.DATATYPES}. Found [{val}]"
             raise ValueError(msg)
         self._data_type = val
 
@@ -565,28 +572,12 @@ class Description:
 
     # computed properties
     @property
+    def suffix_no_modality(self) -> str:
+        return self.custom_labels
+
+    @property
     def suffix(self) -> str:
         return f"{self.custom_labels}{self.modality_label}"
-
-
-def _setup_logging(log_level, logFile=None):
-    """Setup logging configuration"""
-    logging.basicConfig()
-    logger = logging.getLogger()
-
-    # Check level
-    level = getattr(logging, log_level.upper(), None)
-    if not isinstance(level, int):
-        raise ValueError(f"Invalid log level: {log_level}")
-    logger.setLevel(level)
-
-    # Set FileHandler
-    if logFile:
-        formatter = logging.Formatter(logging.BASIC_FORMAT)
-        handler = logging.FileHandler(logFile)
-        handler.setFormatter(formatter)
-        handler.setLevel("DEBUG")
-        logger.addHandler(handler)
 
 
 class FilenameEntities:
@@ -646,7 +637,7 @@ class FilenameEntities:
     def parse(cls, entities: str | dict[str, str]) -> dict[str, str]:
         if isinstance(entities, dict):
             return entities
-        entity_strs = entities.strip("_").split("_")
+        entity_strs = entities.strip().strip("_").split("_")
         return dict(map(cls._split_entity_str, entity_strs))
 
     @staticmethod
@@ -661,3 +652,23 @@ class FilenameEntities:
         k = parts[0]
         v = "".join(filter(str.isalnum, "".join(parts[1:])))
         return k, v
+
+
+def _setup_logging(log_level, logFile=None):
+    """Setup logging configuration"""
+    logging.basicConfig()
+    logger = logging.getLogger()
+
+    # Check level
+    level = getattr(logging, log_level.upper(), None)
+    if not isinstance(level, int):
+        raise ValueError(f"Invalid log level: {log_level}")
+    logger.setLevel(level)
+
+    # Set FileHandler
+    if logFile:
+        formatter = logging.Formatter(logging.BASIC_FORMAT)
+        handler = logging.FileHandler(logFile)
+        handler.setFormatter(formatter)
+        handler.setLevel("DEBUG")
+        logger.addHandler(handler)

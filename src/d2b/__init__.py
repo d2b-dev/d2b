@@ -8,6 +8,7 @@ from d2b.d2b import __version__
 from d2b.d2b import Acquisition
 from d2b.d2b import D2B
 from d2b.d2b import Description
+from d2b.d2b import FilenameEntities
 from d2b.d2b import Matcher
 from d2b.d2b import Participant
 
@@ -23,6 +24,7 @@ __all__ = (
     "Acquisition",
     "D2B",
     "Description",
+    "FilenameEntities",
     "Matcher",
     "Participant",
 )
