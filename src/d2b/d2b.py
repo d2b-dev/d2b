@@ -20,7 +20,7 @@ from d2b.utils import prepend
 from d2b.utils import rsync
 from d2b.utils import splitext
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 
 T = TypeVar("T")
