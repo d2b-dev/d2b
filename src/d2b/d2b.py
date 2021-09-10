@@ -90,7 +90,7 @@ class D2B:
         for i, in_dir in enumerate(self.in_dirs):
             dst_dir = dst_parent / f"{self.participant.directory}" / f"folder{i:02}"
             dst_dir.mkdir(exist_ok=True, parents=True)
-            msg = f"Copying folder [{in_dir}] to temporary directory [{dst_dir}]"
+            msg = f"Copying folder [{in_dir}] to temporary location [{dst_dir}]"
             self.logger.info(msg)
             rsync(in_dir, dst_dir)
 
@@ -637,15 +637,18 @@ class FilenameEntities:
     def parse(cls, entities: str | dict[str, str]) -> dict[str, str]:
         if isinstance(entities, dict):
             return entities
+        stripped_entities = entities.strip().strip("_")
+        if stripped_entities == "":
+            return {}
         entity_strs = entities.strip().strip("_").split("_")
         return dict(map(cls._split_entity_str, entity_strs))
 
     @staticmethod
     def _split_entity_str(s: str) -> tuple[str, str]:
-        parts = s.split("-")
+        parts = s.strip().split("-")
         if len(parts) < 2:
             m = (
-                f"Failed parsing entity string [{s}]. "
+                f"Failed parsing entity string [{s!r}]. "
                 "String must have at least one hyphen."
             )
             raise ValueError(m)
