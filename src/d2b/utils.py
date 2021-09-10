@@ -87,7 +87,7 @@ def associated_nii_ext(fp: str | Path) -> str | None:
     nii = first_nii(fp)
     if nii is None:
         return
-    _, ext = splitext(fp)
+    _, ext = splitext(nii)
     return ext
 
 
