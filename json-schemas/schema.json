@@ -154,6 +154,7 @@
         "default": {},
         "examples": [
           {
+            "id": "",
             "dataType": "",
             "modalityLabel": "",
             "customLabels": {},
@@ -347,6 +348,25 @@
               "",
               []
             ]
+          },
+          "aslContext": {
+            "$id": "#/properties/descriptions/items/properties/aslContext",
+            "title": "Volume types for '*_aslcontext.tsv'",
+            "description": "Labels identifying the volume type of each volume in the corresponding *_asl.nii[.gz] file. Volume types are based on DICOM Tag (0018,9257) ASL Context.",
+            "default": [],
+            "items": {
+              "$id": "#/properties/descriptions/items/properties/aslContext/items",
+              "type": "string",
+              "title": "Volume type",
+              "description": "Labels for each of the volumes in the ASL acquisition which this description describes.",
+              "default": "m0scan",
+              "examples": [
+                "control",
+                "label",
+                "deltam",
+                "cbf"
+              ]
+            }
           }
         },
         "additionalProperties": true
