@@ -323,6 +323,170 @@
                 "title": "The filename pattern to search for.",
                 "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This field is equivalent to the 'filename' property.",
                 "default": ""
+              },
+              "Modality": {
+                "type": "string",
+                "default": ""
+              },
+              "MagneticFieldStrength": {
+                "type": "number",
+                "default": 3
+              },
+              "Manufacturer": {
+                "type": "string",
+                "default": ""
+              },
+              "ManufacturersModelName": {
+                "type": "string",
+                "default": ""
+              },
+              "InstitutionName": {
+                "type": "string",
+                "default": ""
+              },
+              "InstitutionalDepartmentName": {
+                "type": "string",
+                "default": ""
+              },
+              "InstitutionAddress": {
+                "type": "string",
+                "default": ""
+              },
+              "PatientPosition": {
+                "type": "string",
+                "default": ""
+              },
+              "SoftwareVersions": {
+                "type": "string",
+                "default": ""
+              },
+              "MRAcquisitionType": {
+                "type": "string",
+                "default": ""
+              },
+              "SeriesDescription": {
+                "type": "string",
+                "default": ""
+              },
+              "ProtocolName": {
+                "type": "string",
+                "default": ""
+              },
+              "ScanningSequence": {
+                "type": "string",
+                "default": ""
+              },
+              "SequenceVariant": {
+                "type": "string",
+                "default": ""
+              },
+              "ScanOptions": {
+                "type": "string",
+                "default": ""
+              },
+              "SequenceName": {
+                "type": "string",
+                "default": ""
+              },
+              "ImageType": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "SeriesNumber": {
+                "type": "number",
+                "default": 1
+              },
+              "AcquisitionTime": {
+                "type": "string",
+                "default": ""
+              },
+              "AcquisitionNumber": {
+                "type": "string",
+                "default": ""
+              },
+              "ImageComments": {
+                "type": "string",
+                "default": ""
+              },
+              "SliceThickness": {
+                "type": "string",
+                "default": ""
+              },
+              "SpacingBetweenSlices": {
+                "type": "string",
+                "default": ""
+              },
+              "SAR": {
+                "type": "string",
+                "default": ""
+              },
+              "EchoTime": {
+                "type": "string",
+                "default": ""
+              },
+              "RepetitionTime": {
+                "type": "string",
+                "default": ""
+              },
+              "FlipAngle": {
+                "type": "string",
+                "default": ""
+              },
+              "PartialFourier": {
+                "type": "string",
+                "default": ""
+              },
+              "BaseResolution": {
+                "type": "string",
+                "default": ""
+              },
+              "MultibandAccelerationFactor": {
+                "type": "integer",
+                "default": 1
+              },
+              "EchoTrainLength": {
+                "type": "string",
+                "default": ""
+              },
+              "PhaseEncodingSteps": {
+                "type": "string",
+                "default": ""
+              },
+              "AcquisitionMatrixPE": {
+                "type": "string",
+                "default": ""
+              },
+              "ReconMatrixPE": {
+                "type": "string",
+                "default": ""
+              },
+              "BandwidthPerPixelPhaseEncode": {
+                "type": "string",
+                "default": ""
+              },
+              "EffectiveEchoSpacing": {
+                "type": "string",
+                "default": ""
+              },
+              "TotalReadoutTime": {
+                "type": "string",
+                "default": ""
+              },
+              "PixelBandwidth": {
+                "type": "string",
+                "default": ""
+              },
+              "DwellTime": {
+                "type": "string",
+                "default": ""
+              },
+              "PhaseEncodingDirection": {
+                "type": "string",
+                "default": ""
               }
             },
             "additionalProperties": true
