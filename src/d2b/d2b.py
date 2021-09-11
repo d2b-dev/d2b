@@ -6,6 +6,7 @@ import os
 import platform
 import sys
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -518,14 +519,15 @@ class Description:
 
     @classmethod
     def from_dict(cls, index: int, data: dict[str, Any]):
+        _d = deepcopy(data)
         return cls(
             index=index,
-            data_type=data["dataType"],
-            modality_label=data["modalityLabel"],
-            custom_labels=data.get("customLabels", ""),
-            sidecar_changes=data.get("sidecarChanges"),
-            intended_for=data.get("IntendedFor"),
-            data=data,
+            data_type=_d.pop("dataType"),
+            modality_label=_d.pop("modalityLabel"),
+            custom_labels=_d.pop("customLabels", ""),
+            sidecar_changes=_d.pop("sidecarChanges", None),
+            intended_for=_d.pop("IntendedFor", None),
+            data=_d,
         )
 
     def copy(self):
@@ -534,9 +536,9 @@ class Description:
             data_type=self.data_type,
             modality_label=self.modality_label,
             custom_labels=self.custom_labels,
-            sidecar_changes=self.sidecar_changes,
-            intended_for=self.intended_for,
-            data=self.data,
+            sidecar_changes=deepcopy(self.sidecar_changes),
+            intended_for=deepcopy(self.intended_for),
+            data=deepcopy(self.data),
         )
 
     # getter/setters
