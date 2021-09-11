@@ -57,6 +57,7 @@ def prepend(value: str, char="_"):
 
 
 def rsync(src: str | Path, dst: str | Path) -> Path:
+    """Thin wrapper around the 'rsync' command line tool."""
     _src, _dst = Path(src), Path(dst)
     subprocess.run(["rsync", "-ac", f"{_src}/", f"{_dst}/"], check=True)
     return _dst
@@ -67,7 +68,21 @@ def compare(
     pattern: str,
     search_method: str = defaults.search_method,
     case_sensitive: bool = defaults.case_sensitive,
-):
+) -> bool:
+    """Determine if a string matches a pattern.
+
+    Args:
+        name (str): The string to test.
+        pattern (str): The pattern to search for.
+        search_method (str, optional): How to interpret name, one of
+            `fnmatch` (default) or `re`. Defaults to defaults.search_method.
+        case_sensitive (bool, optional): Whether the search is performed in
+            a case-sensitive manner, if `search_method` is `re` then this
+            parameter is ignored. Defaults to defaults.case_sensitive.
+
+    Returns:
+        bool: Whether `name` is a match for `pattern`
+    """
     name, pattern = str(name), str(pattern)
     if search_method == "re":
         return bool(re.search(pattern, name))
