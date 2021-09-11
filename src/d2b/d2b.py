@@ -636,15 +636,16 @@ class FilenameEntities:
     @classmethod
     def parse(cls, entities: str | dict[str, str]) -> dict[str, str]:
         if isinstance(entities, dict):
-            return entities
+            return {k: cls._sanitize_entity_value(v) for k, v in entities.items()}
+
         stripped_entities = entities.strip().strip("_")
         if stripped_entities == "":
             return {}
         entity_strs = entities.strip().strip("_").split("_")
         return dict(map(cls._split_entity_str, entity_strs))
 
-    @staticmethod
-    def _split_entity_str(s: str) -> tuple[str, str]:
+    @classmethod
+    def _split_entity_str(cls, s: str) -> tuple[str, str]:
         parts = s.strip().split("-")
         if len(parts) < 2:
             m = (
@@ -653,8 +654,12 @@ class FilenameEntities:
             )
             raise ValueError(m)
         k = parts[0]
-        v = "".join(filter(str.isalnum, "".join(parts[1:])))
+        v = cls._sanitize_entity_value("".join(parts[1:]))
         return k, v
+
+    @staticmethod
+    def _sanitize_entity_value(v: str):
+        return "".join(filter(str.isalnum, v))
 
 
 def _setup_logging(log_level, logFile=None):
