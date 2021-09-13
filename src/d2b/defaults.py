@@ -15,5 +15,5 @@ out_dir = cli_out_dir
 search_method: TSeachMethod = "fnmatch"
 search_method_choices = ["fnmatch", "re"]
 session = cli_session
-run_tpl = "_run-{:02d}"
+run_tpl = "_run-{:d}"
 d2b_dir_name = "tmp_d2b"
