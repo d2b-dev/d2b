@@ -6,6 +6,7 @@ from d2b.d2b import Acquisition
 from d2b.d2b import Description
 from d2b.d2b import FilenameEntities
 from d2b.d2b import IntendedForResolver
+from d2b.d2b import Matcher
 from d2b.d2b import Participant
 from pytest import LogCaptureFixture
 from pytest_mock import MockerFixture
@@ -558,3 +559,128 @@ class TestIntendedForResolver:
         resolver = IntendedForResolver()
         with pytest.raises(ValueError):
             resolver.resolve(acquisitions)
+
+
+class TestMatcher:
+    def test_init(self):
+        files = [Path("a.json")]
+        participant = Participant("abc", "1")
+        descriptions = [Description(0, "func", "bold")]
+        config = {"config_key": "config_value"}
+        options = {"option_key": "option_value"}
+        logger = logging.getLogger("test")
+
+        matcher = Matcher(files, participant, descriptions, config, options, logger)
+
+        assert matcher.files == files
+        assert matcher.participant == participant
+        assert matcher.descriptions == descriptions
+        assert matcher.config == config
+        assert matcher.options == options
+        assert matcher.logger == logger
+
+    def test_init_defaults(self):
+        files = [Path("a.json")]
+        participant = Participant("abc", "1")
+        descriptions = [Description(0, "func", "bold")]
+
+        matcher = Matcher(files, participant, descriptions)
+
+        assert matcher.files == files
+        assert matcher.participant == participant
+        assert matcher.descriptions == descriptions
+        assert matcher.config == {}
+        assert matcher.options == {}
+        assert matcher.logger is not None and matcher.logger.name == "d2b.d2b"
+
+    @pytest.mark.parametrize(
+        # NOTE: this test relies on the implementation insofar as we "known"
+        # that files and descriptions are compared via
+        # itertools.produce(file, descriptions), this knowledge is reflected
+        # in the 'patched_links' iterable (used to mock-out the is_link hook)
+        ("files", "descriptions", "patched_links", "matched_descriptions"),
+        [
+            # empty everything
+            ([], [], [], []),
+            # empty files
+            ([], [Description(0, "func", "a"), Description(0, "func", "b")], [], []),
+            # empty descriptions
+            ([Path("a.json"), Path("b.json")], [], [], []),
+            # no matches
+            (
+                [Path("a.json"), Path("b.json")],
+                [Description(0, "func", "a"), Description(1, "func", "b")],
+                # calling the is_link hook results in a list of non-None
+                # values, each entry in the following list will be used
+                # to mock a call to the is_link hook
+                [[False], [False], [False], [False]],
+                [],
+            ),
+            # file matches unique description
+            # - f: (matched files) -> (matched descriptions) is a bijection
+            (
+                [Path("a.json"), Path("b.json")],
+                [
+                    Description(0, "func", "a", data={"criteria": {}}),
+                    Description(1, "func", "b", data={"criteria": {}}),
+                ],
+                [[True], [False], [False], [True]],  # a.json -> 0, b.json -> 1
+                [0, 1],
+            ),
+            # file matches more than one description (i.e. TAKE NO ACTION)
+            # - f: (matched descriptions) -> (matched files) is NON-injective
+            (
+                [Path("a.json"), Path("b.json")],
+                [
+                    Description(0, "func", "a", data={"criteria": {}}),
+                    Description(1, "func", "b", data={"criteria": {}}),
+                ],
+                [[True], [True], [False], [False]],  # a.json -> 0, a.json -> 1
+                [],
+            ),
+            # description matches more than one file (i.e. DUPLICATE RUNS)
+            # - f: (matched files) -> (matched descriptions) is NON-injective
+            (
+                [Path("a.json"), Path("b.json")],
+                [
+                    Description(0, "func", "a", data={"criteria": {}}),
+                    Description(1, "func", "b", data={"criteria": {}}),
+                ],
+                [[True], [False], [True], [False]],  # a.json -> 0, b.json -> 0
+                [0, 0],
+            ),
+        ],
+    )
+    def test_run(
+        self,
+        mocker: MockerFixture,
+        files,
+        descriptions,
+        patched_links,
+        matched_descriptions,
+    ):
+        mocker.patch("d2b.d2b.pm").hook.is_link.side_effect = patched_links
+
+        matcher = Matcher(files, Participant("a", "1"), descriptions)
+
+        acquisitions = matcher.run()
+
+        # check that we got as many matches as we expected (since we're
+        # mocking is_link this is a little "self-fulfulling")
+        assert len(acquisitions) == len(matched_descriptions)
+
+        # check that each acquisition has a description object
+        # that matches the description we expected
+        for (acq, desc_idx) in zip(acquisitions, matched_descriptions):
+            assert acq.description.index == desc_idx
+
+        # check if run deduping happened
+        if len(matched_descriptions) > 0 and len(set(matched_descriptions)) == 1:
+            # more than one matched description and each matched descriptions
+            # is actually the same description (i.e. the last test case above)
+            for i, acq in enumerate(acquisitions, 1):
+                assert f"run-{i}" in str(acq.dst_root)
+        else:
+            # check that no run deduping happened
+            for acq in acquisitions:
+                assert "run" not in str(acq.dst_root)

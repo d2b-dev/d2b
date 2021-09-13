@@ -117,17 +117,17 @@ class D2B:
 
         # run the matching algorithm
         self.matcher = Matcher(
+            self.files,
             self.participant,
             self.descriptions,
-            self.files,
             self.config,
             self.options,
         )
-        self.matcher.run()
+        unresolved_acquisitions = self.matcher.run()
 
         # resolve IntendedFor Fields
         resolver = IntendedForResolver(logger=self.logger)
-        self.acquistions = resolver.resolve(self.matcher.acquisitions)
+        self.acquistions = resolver.resolve(unresolved_acquisitions)
 
         # run pre-move hooks
         self.logger.info("Running pre-move hooks")
@@ -196,41 +196,44 @@ class D2B:
 class Matcher:
     def __init__(
         self,
+        files: list[Path],
         participant: Participant,
         descriptions: list[Description],
-        files: list[Path],
         config: dict[str, Any] = None,  # d2b config
         options: dict[str, Any] = None,  # from the cli
+        logger: logging.Logger = None,
     ):
         self.participant = participant
         self.descriptions = descriptions
         self.files = files
         self.config = config or {}
         self.options = options or {}
-
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
 
         # populated in self.find_matches()
         self.file_to_acq: dict[Path, list[Acquisition]] = {fp: [] for fp in files}
         # populated in self.filter_unique_matches()
         self.acquisitions: list[Acquisition] = []
 
-    def run(self):
+    def run(self) -> list[Acquisition]:
         self.find_matches()
         self.filter_unique_matches()
         self.dedup_runs()
+        return self.acquisitions
 
     def find_matches(self):
         possible_matches = itertools.product(self.files, self.descriptions)
         for fp, description in possible_matches:
             criteria = description.data.get("criteria")
+            if criteria is None:
+                continue
             possible_link = pm.hook.is_link(  # type: ignore
                 path=fp,
                 criteria=criteria,
                 config=self.config,
                 options=self.options,
             )
-            if criteria is None or not any(possible_link):
+            if not any(possible_link):
                 continue
             acquisition = Acquisition(fp, self.participant, description.copy())
             self.file_to_acq[fp].append(acquisition)
