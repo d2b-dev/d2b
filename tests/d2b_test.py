@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pytest
+from d2b.d2b import Acquisition
 from d2b.d2b import Description
 from d2b.d2b import FilenameEntities
+from d2b.d2b import Participant
 
 
 class TestFilenameEntities:
@@ -10,6 +14,7 @@ class TestFilenameEntities:
         assert fe.entities == entities
         assert str(fe) == "sub-1_acq-2"
         assert list(fe) == [("sub", "1"), ("acq", "2")]
+        assert repr(fe) == "FilenameEntities({'sub': '1', 'acq': '2'})"
 
     def test_init_with_illegal_entity_values(self):
         fe = FilenameEntities({"acq": "a-b.c", "sub": "abc?1"})  # note the wrong order
@@ -25,11 +30,11 @@ class TestFilenameEntities:
         assert list(fe) == []
 
     def test_from_string(self):
-        entities = "_acq-2_sub-abc123"  # note the wrong order
+        entities = "_acq-2_unknown-def_sub-abc123"  # note the wrong order
         fe = FilenameEntities.from_string(entities)
-        assert fe.entities == {"acq": "2", "sub": "abc123"}
-        assert str(fe) == "sub-abc123_acq-2"
-        assert list(fe) == [("sub", "abc123"), ("acq", "2")]
+        assert fe.entities == {"acq": "2", "sub": "abc123", "unknown": "def"}
+        assert str(fe) == "sub-abc123_acq-2_unknown-def"
+        assert list(fe) == [("sub", "abc123"), ("acq", "2"), ("unknown", "def")]
 
     def test_from_string_with_illegal_entity_values(self):
         s = "_acq-a-b.c_sub-abc?1_"  # note the wrong order
@@ -44,6 +49,11 @@ class TestFilenameEntities:
         assert fe.entities == {}
         assert str(fe) == ""
         assert list(fe) == []
+
+    def test_from_string_raises_when_given_badly_formatted_entities(self):
+        entities = "acq"
+        with pytest.raises(ValueError):
+            FilenameEntities.from_string(entities)
 
 
 class TestDescription:
@@ -206,249 +216,263 @@ class TestDescription:
         assert hash(Description(0, "func", ""))
 
 
-# class TestParticipant:
-#     def test_init_with_one_argument(self):
-#         participant = Participant("label01")
-#         assert participant.label == "label01"
-#         assert participant.bids_label == "sub-label01"
-#         assert participant.session == ""
-#         assert participant.bids_session == ""
-#         assert participant.prefix == "sub-label01"
-#         assert participant.directory == Path("sub-label01")
+class TestParticipant:
+    def test_init_with_one_argument(self):
+        participant = Participant("label01")
+        assert participant.label == "label01"
+        assert participant.bids_label == "sub-label01"
+        assert participant.session == ""
+        assert participant.bids_session == ""
+        assert participant.prefix == "sub-label01"
+        assert participant.directory == Path("sub-label01")
+        assert participant.subject_directory == Path("sub-label01")
 
-#     def test_init_with_explicit_empty_session(self):
-#         participant = Participant("label01", "")
-#         assert participant.label == "label01"
-#         assert participant.bids_label == "sub-label01"
-#         assert participant.session == ""
-#         assert participant.bids_session == ""
-#         assert participant.prefix == "sub-label01"
-#         assert participant.directory == Path("sub-label01")
+    def test_init_with_explicit_empty_session(self):
+        participant = Participant("label01", "")
+        assert participant.label == "label01"
+        assert participant.bids_label == "sub-label01"
+        assert participant.session == ""
+        assert participant.bids_session == ""
+        assert participant.prefix == "sub-label01"
+        assert participant.directory == Path("sub-label01")
+        assert participant.subject_directory == Path("sub-label01")
 
-#     def test_init_with_label_and_session(self):
-#         participant = Participant("label01", "session01")
-#         assert participant.label == "label01"
-#         assert participant.bids_label == "sub-label01"
-#         assert participant.session == "session01"
-#         assert participant.bids_session == "ses-session01"
-#         assert participant.prefix == "sub-label01_ses-session01"
-#         assert participant.directory == Path("sub-label01", "ses-session01")
+    def test_init_with_label_and_session(self):
+        participant = Participant("label01", "session01")
+        assert participant.label == "label01"
+        assert participant.bids_label == "sub-label01"
+        assert participant.session == "session01"
+        assert participant.bids_session == "ses-session01"
+        assert participant.prefix == "sub-label01_ses-session01"
+        assert participant.directory == Path("sub-label01", "ses-session01")
+        assert participant.subject_directory == Path("sub-label01")
 
-#     def test_init_with_label_and_session_that_already_have_prefixes_is_ok(self):
-#         participant = Participant("sub-label01", "ses-session01")
-#         assert participant.label == "label01"
-#         assert participant.bids_label == "sub-label01"
-#         assert participant.session == "session01"
-#         assert participant.bids_session == "ses-session01"
-#         assert participant.prefix == "sub-label01_ses-session01"
-#         assert participant.directory == Path("sub-label01", "ses-session01")
+    def test_init_with_label_and_session_that_already_have_prefixes_is_ok(self):
+        participant = Participant("sub-label01", "ses-session01")
+        assert participant.label == "label01"
+        assert participant.bids_label == "sub-label01"
+        assert participant.session == "session01"
+        assert participant.bids_session == "ses-session01"
+        assert participant.prefix == "sub-label01_ses-session01"
+        assert participant.directory == Path("sub-label01", "ses-session01")
+        assert participant.subject_directory == Path("sub-label01")
 
-#     def test_label_and_session_are_stripped_of_whitespace(self):
-#         participant = Participant(" label01 ", " session01 ")
-#         assert participant.label == "label01"
-#         assert participant.bids_label == "sub-label01"
-#         assert participant.session == "session01"
-#         assert participant.bids_session == "ses-session01"
+    def test_label_and_session_are_stripped_of_whitespace(self):
+        participant = Participant(" label01 ", " session01 ")
+        assert participant.label == "label01"
+        assert participant.bids_label == "sub-label01"
+        assert participant.session == "session01"
+        assert participant.bids_session == "ses-session01"
 
-#     def test_raises_ValueError_if_label_is_empty(self):
-#         with pytest.raises(ValueError):
-#             Participant("")
+    def test_raises_ValueError_if_label_is_empty(self):
+        with pytest.raises(ValueError):
+            Participant("")
 
-#     def test_raises_ValueError_if_label_is_not_alphanumeric(self):
-#         with pytest.raises(ValueError):
-#             Participant("label_01")
+    def test_raises_ValueError_if_label_is_not_alphanumeric(self):
+        with pytest.raises(ValueError):
+            Participant("label_01")
 
-#     def test_raises_ValueError_if_session_is_not_alphanumeric(self):
-#         with pytest.raises(ValueError):
-#             Participant("label", "session-01")
+    def test_raises_ValueError_if_session_is_not_alphanumeric(self):
+        with pytest.raises(ValueError):
+            Participant("label", "session-01")
 
-#     def test_repr(self):
-#         participant = Participant("label01", "session01")
-#         assert str(participant) == "Participant('label01', 'session01')"
+    def test_repr(self):
+        participant = Participant("label01", "session01")
+        assert str(participant) == "Participant('label01', 'session01')"
 
-#     def test_repr_empty_session(self):
-#         participant = Participant("label01")
-#         assert str(participant) == "Participant('label01', '')"
-
-
-# class TestSidecar:
-#     def test_init(self):
-#         filename = "a/b.json"
-#         data = {"a": 1, "b": 2}
-#         comp_keys = ["a", "b"]
-
-#         sidecar = Sidecar(filename, data, comp_keys)
-
-#         assert sidecar.filename == Path(filename)
-#         assert sidecar.data == data
-#         assert sidecar.comp_keys == comp_keys
-#         assert sidecar.root == Path("a/b")
-
-#     def test_init_with_defaults(self):
-#         sidecar = Sidecar("a.json")
-
-#         assert sidecar.filename == Path("a.json")
-#         assert sidecar.data == {}
-#         assert sidecar.comp_keys == DEFAULT.comp_keys
-
-#     def test_is_hashable(self):
-#         sidecar = Sidecar("")
-
-#         assert hash(sidecar)
-
-#     def test_create_from_filename(self, tmpdir):
-#         data = {"a": 1, "b": 2}
-#         comp_keys = ["a", "b"]
-#         sidecar_path = Path(tmpdir) / "t.json"
-#         sidecar_path.write_text(json.dumps(data))
-
-#         sidecar = Sidecar.from_filename(sidecar_path, comp_keys)
-
-#         assert sidecar.filename == sidecar_path
-#         assert sidecar.data == data
-#         assert sidecar.comp_keys == comp_keys
-
-#     def test_sidecars_with_same_attrs_are_equal(self):
-#         s1 = Sidecar("a.json")
-#         s2 = Sidecar("a.json")
-
-#         assert s1 == s2
-
-#     @pytest.mark.parametrize(
-#         ("s1", "s2", "s1_lt_s2"),
-#         [
-#             (Sidecar("a.json"), Sidecar("a.json"), False),
-#             (Sidecar("a.json"), Sidecar("b.json"), True),
-#             (
-#                 Sidecar("a.json", {"SeriesNumber": 2}),
-#                 Sidecar("b.json", {"SeriesNumber": 1}),
-#                 False,
-#             ),
-#             (
-#                 Sidecar(
-#                     "b.json",
-#                     {"SeriesNumber": 1, "AcquisitionTime": "12:00:00.000000"},
-#                 ),
-#                 Sidecar(
-#                     "a.json",
-#                     {"SeriesNumber": 1, "AcquisitionTime": "10:36:51.567500"},
-#                 ),
-#                 False,
-#             ),
-#             (
-#                 Sidecar("a.json", {"SeriesNumber": 1, "AcquisitionTime": ""}),
-#                 Sidecar("b.json", {"SeriesNumber": 1, "AcquisitionTime": ""}),
-#                 True,
-#             ),
-#         ],
-#     )
-#     def test_sidecar_comparability_with_default_comp_keys(self, s1, s2, s1_lt_s2):
-#         assert (s1 < s2) is s1_lt_s2
+    def test_repr_empty_session(self):
+        participant = Participant("label01")
+        assert str(participant) == "Participant('label01', '')"
 
 
-# class TestAcquisition:
-#     def test_init_defaults(self):
-#         p = Participant("label01", "session01")
-#         s = Sidecar("a/b.json", {"a": 1, "b": 2})
-#         d = "anat"
-#         m = "T1w"
+class TestAcquisition:
+    def test_init(self):
+        src_file = Path("a.json")
+        p = Participant("sub-01")
+        d = Description(0, "func", "bold")
+        data = {"a": 1}
 
-#         acq = Acquisition(p, s, d, m)
+        acq = Acquisition(src_file, p, d, data)
 
-#         assert acq.participant == p
-#         assert acq.sidecar == s
-#         assert acq.data_type == d
-#         assert acq.modality_label == "_T1w"
+        assert acq.src_file == src_file
+        assert acq.participant == p
+        assert acq.description == d
+        assert acq.data == data
 
-#         assert acq.custom_labels == ""
-#         assert acq.sidecar_changes == {}
-#         assert acq.intended_for is None
-#         assert acq.suffix == "_T1w"
-#         assert acq.src_root == Path("a/b")
-#         assert acq.dst_root == Path(
-#             "sub-label01/ses-session01/anat/sub-label01_ses-session01_T1w",
-#         )
+    def test_init_defaults(self):
+        src_file = Path("a.json")
+        p = Participant("sub-01", "ses-01")
+        d = Description(0, "func", "bold")
 
-#     def test_init_custom_params(self):
-#         p = Participant("label01", "session01")
-#         s = Sidecar("a/b.json", {"a": 1, "b": 2})
-#         d = "anat"
+        acq = Acquisition(src_file, p, d)
 
-#         acq = Acquisition(
-#             p,
-#             s,
-#             d,
-#             "T1w",
-#             "task-rest_desc-something",
-#             {"a": -1, "c": "hello"},
-#             1,
-#         )
+        assert acq.src_file == src_file
+        assert acq.participant == p
+        assert acq.description == d
+        assert acq.data == {}
 
-#         assert acq.participant == p
-#         assert acq.sidecar == s
-#         assert acq.data_type == d
-#         assert acq.modality_label == "_T1w"
+    @pytest.mark.parametrize(
+        ("src_file", "expected"),
+        [
+            (Path("a.json"), Path("a")),
+            (Path("a.nii.gz"), Path("a")),
+            (Path("a/b/c.json"), Path("a/b/c")),
+            (Path("a/b/c.nii.gz"), Path("a/b/c")),
+        ],
+    )
+    def test_src_root(self, src_file, expected):
+        p = Participant("sub-01", "ses-01")
+        d = Description(0, "func", "bold")
 
-#         assert acq.custom_labels == "_task-rest_desc-something"
-#         assert acq.sidecar_changes == {"a": -1, "c": "hello"}
-#         assert acq.intended_for == 1
-#         assert acq.suffix == "_task-rest_desc-something_T1w"
-#         assert acq.src_root == Path("a/b")
-#         assert acq.dst_root == Path(
-#             "sub-label01",
-#             "ses-session01",
-#             "anat",
-#             "sub-label01_ses-session01_task-rest_desc-something_T1w",
-#         )
+        acq = Acquisition(src_file, p, d)
 
-#     def test_init_custom_params_variant2(self):
-#         p = Participant("label01", "session01")
-#         s = Sidecar("a/b.json", {"a": 1, "b": 2})
-#         d = "anat"
+        assert acq.src_root == expected
 
-#         acq = Acquisition(
-#             p,
-#             s,
-#             d,
-#             "T1w",
-#             {"task": "rest", "desc": "something"},
-#             {"a": -1, "c": "hello"},
-#             [2, 3],
-#         )
+    @pytest.mark.parametrize(
+        ("participant", "description", "expected_dst_root", "expected_drnm"),
+        [
+            (
+                Participant("1"),
+                Description(0, "func", "_bold"),
+                Path("sub-1/func/sub-1_bold"),
+                Path("sub-1/func/sub-1"),
+            ),
+            (
+                Participant("1", "2"),
+                Description(0, "perf", "_asl"),
+                Path("sub-1/ses-2/perf/sub-1_ses-2_asl"),
+                Path("sub-1/ses-2/perf/sub-1_ses-2"),
+            ),
+            (
+                Participant("1"),
+                Description(0, "func", "_bold", custom_labels="dir-AP_acq-test"),
+                Path("sub-1/func/sub-1_acq-test_dir-AP_bold"),
+                Path("sub-1/func/sub-1_acq-test_dir-AP"),
+            ),
+        ],
+    )
+    def test_dst_root_methods(
+        self,
+        participant,
+        description,
+        expected_dst_root,
+        expected_drnm,
+    ):
+        acq = Acquisition(Path(), participant, description)
+        assert acq.dst_root == expected_dst_root
+        assert acq.dst_root_no_modality == expected_drnm
 
-#         assert acq.participant == p
-#         assert acq.sidecar == s
-#         assert acq.data_type == d
-#         assert acq.modality_label == "_T1w"
+    @pytest.mark.parametrize(
+        ("p", "d"),
+        [
+            (Participant("sub-01"), Description(0, "perf", "_asl")),
+            (
+                Participant("sub-01", "ses-01"),
+                Description(0, "func", "bold", custom_labels="echo-1_dir-ap"),
+            ),
+        ],
+    )
+    def test_equal_acquisitions(self, p, d):
+        assert Acquisition(Path("a.json"), p, d) == Acquisition(Path("b.nii.gz"), p, d)
 
-#         assert acq.custom_labels == "_task-rest_desc-something"
-#         assert acq.sidecar_changes == {"a": -1, "c": "hello"}
-#         assert acq.intended_for == [2, 3]
-#         assert acq.suffix == "_task-rest_desc-something_T1w"
-#         assert acq.src_root == Path("a/b")
-#         assert acq.dst_root == Path(
-#             "sub-label01",
-#             "ses-session01",
-#             "anat",
-#             "sub-label01_ses-session01_task-rest_desc-something_T1w",
-#         )
+    @pytest.mark.parametrize(
+        ("p1", "d1", "p2", "d2"),
+        [
+            (
+                Participant("sub-01"),
+                Description(0, "perf", "_asl"),
+                Participant("sub-01", "ses-01"),
+                Description(0, "func", "bold", custom_labels="echo-1_dir-ap"),
+            ),
+        ],
+    )
+    def test_non_equal_acquisitions(self, p1, d1, p2, d2):
+        assert Acquisition(Path("a.json"), p1, d1) != Acquisition(
+            Path("a.json"),
+            p2,
+            d2,
+        )
 
-#     def test_acqs_with_same_params_are_equal(self):
-#         acq1 = Acquisition(
-#             Participant("label01", "session01"),
-#             Sidecar("a/b.json", {"a": 1, "b": 2}),
-#             "anat",
-#             "T1w",
-#         )
+    # def test_init_custom_params(self):
+    #     p = Participant("label01", "session01")
+    #     s = Sidecar("a/b.json", {"a": 1, "b": 2})
+    #     d = "anat"
 
-#         acq2 = Acquisition(
-#             Participant("label01", "session01"),
-#             Sidecar("a/b.json", {"a": 1, "b": 2}),
-#             "anat",
-#             "T1w",
-#         )
+    #     acq = Acquisition(
+    #         p,
+    #         s,
+    #         d,
+    #         "T1w",
+    #         "task-rest_desc-something",
+    #         {"a": -1, "c": "hello"},
+    #         1,
+    #     )
 
-#         assert acq1 == acq2
+    #     assert acq.participant == p
+    #     assert acq.sidecar == s
+    #     assert acq.data_type == d
+    #     assert acq.modality_label == "_T1w"
+
+    #     assert acq.custom_labels == "_task-rest_desc-something"
+    #     assert acq.sidecar_changes == {"a": -1, "c": "hello"}
+    #     assert acq.intended_for == 1
+    #     assert acq.suffix == "_task-rest_desc-something_T1w"
+    #     assert acq.src_root == Path("a/b")
+    #     assert acq.dst_root == Path(
+    #         "sub-label01",
+    #         "ses-session01",
+    #         "anat",
+    #         "sub-label01_ses-session01_task-rest_desc-something_T1w",
+    #     )
+
+    # def test_init_custom_params_variant2(self):
+    #     p = Participant("label01", "session01")
+    #     s = Sidecar("a/b.json", {"a": 1, "b": 2})
+    #     d = "anat"
+
+    #     acq = Acquisition(
+    #         p,
+    #         s,
+    #         d,
+    #         "T1w",
+    #         {"task": "rest", "desc": "something"},
+    #         {"a": -1, "c": "hello"},
+    #         [2, 3],
+    #     )
+
+    #     assert acq.participant == p
+    #     assert acq.sidecar == s
+    #     assert acq.data_type == d
+    #     assert acq.modality_label == "_T1w"
+
+    #     assert acq.custom_labels == "_task-rest_desc-something"
+    #     assert acq.sidecar_changes == {"a": -1, "c": "hello"}
+    #     assert acq.intended_for == [2, 3]
+    #     assert acq.suffix == "_task-rest_desc-something_T1w"
+    #     assert acq.src_root == Path("a/b")
+    #     assert acq.dst_root == Path(
+    #         "sub-label01",
+    #         "ses-session01",
+    #         "anat",
+    #         "sub-label01_ses-session01_task-rest_desc-something_T1w",
+    #     )
+
+    # def test_acqs_with_same_params_are_equal(self):
+    #     acq1 = Acquisition(
+    #         Participant("label01", "session01"),
+    #         Sidecar("a/b.json", {"a": 1, "b": 2}),
+    #         "anat",
+    #         "T1w",
+    #     )
+
+    #     acq2 = Acquisition(
+    #         Participant("label01", "session01"),
+    #         Sidecar("a/b.json", {"a": 1, "b": 2}),
+    #         "anat",
+    #         "T1w",
+    #     )
+
+    #     assert acq1 == acq2
 
 
 # class TestDcm2niix:

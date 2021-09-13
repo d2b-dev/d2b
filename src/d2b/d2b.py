@@ -403,11 +403,7 @@ class Acquisition:
         self.data = data or {}
 
     def __eq__(self, o):
-        return (
-            self.participant.prefix == o.participant.prefix
-            and self.description.data_type == o.description.data_type
-            and self.description.suffix == o.description.suffix
-        )
+        return self.dst_root == o.dst_root
 
     @property
     def src_root(self) -> Path:
