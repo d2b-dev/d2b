@@ -41,6 +41,7 @@ class D2B:
         self.files: list[Path]  # set in self.run()
         self.descriptions: list[Description]  # set in self.run()
         self.matcher: Matcher  # set in self.run()
+        self.acquisitions: list[Acquisition]  # set in self.run()
 
         self.in_dirs = (
             [Path(d) for d in in_dirs] if isinstance(in_dirs, list) else [Path(in_dirs)]
@@ -124,10 +125,14 @@ class D2B:
         )
         self.matcher.run()
 
+        # resolve IntendedFor Fields
+        resolver = IntendedForResolver(logger=self.logger)
+        self.acquistions = resolver.resolve(self.matcher.acquisitions)
+
         # run pre-move hooks
         self.logger.info("Running pre-move hooks")
         pm.hook.pre_move(  # type: ignore
-            acquisitions=self.matcher.acquisitions,
+            acquisitions=self.acquisitions,
             config=self.config,
             options=self.options,
             d2b=self,
@@ -135,11 +140,11 @@ class D2B:
 
         # move the files
         self.logger.info("Moving acquisitions into BIDS folder")
-        for acquisition in self.matcher.acquisitions:
+        for acquisition in self.acquisitions:
             pm.hook.move(  # type: ignore
                 out_dir=self.out_dir,
                 acquisition=acquisition,
-                acquisitions=self.matcher.acquisitions,
+                acquisitions=self.acquisitions,
                 config=self.config,
                 options=self.options,
                 d2b=self,
@@ -149,7 +154,7 @@ class D2B:
         self.logger.info("Running post-move hooks")
         pm.hook.post_move(  # type: ignore
             out_dir=self.out_dir,
-            acquisitions=self.matcher.acquisitions,
+            acquisitions=self.acquisitions,
             config=self.config,
             options=self.options,
             d2b=self,
@@ -207,14 +212,13 @@ class Matcher:
 
         # populated in self.find_matches()
         self.file_to_acq: dict[Path, list[Acquisition]] = {fp: [] for fp in files}
-        # populated in self.remove_multimatch()
+        # populated in self.filter_unique_matches()
         self.acquisitions: list[Acquisition] = []
 
     def run(self):
         self.find_matches()
         self.filter_unique_matches()
         self.dedup_runs()
-        self.resolve_matches_intended_for()
 
     def find_matches(self):
         possible_matches = itertools.product(self.files, self.descriptions)
@@ -294,7 +298,24 @@ class Matcher:
             if len(positions) > 1:
                 yield key, positions
 
-    def resolve_matches_intended_for(self):
+
+class IntendedForResolver:
+    """Object to handle resolving `IntendedFor` fields among a list of acquisitions
+
+    Note:
+        Calling `IntendedForResolver.resolve()` on a sequence of acquisitions
+        will mutate the underlying acquisitions, specifically, only those
+        acquisitions for which `acq.description.intended_for is not None`
+    """
+
+    def __init__(self, logger: logging.Logger | None = None):
+        self.logger = logger or logging.getLogger(__name__)
+
+        # set in self.resolve()
+        self.acquisitions: list[Acquisition]
+
+    def resolve(self, acquisitions: list[Acquisition] = None) -> list[Acquisition]:
+        self.acquisitions = acquisitions or []
         for acq in self.acquisitions:
             description = acq.description
             intended_for = description.intended_for
@@ -322,6 +343,8 @@ class Matcher:
                     f"Invalid IntendedFor value [{intended_for}] in "
                     f"description at index [{description.index}]",
                 )
+
+        return self.acquisitions
 
     def _resolve_intended_for_path(
         self,

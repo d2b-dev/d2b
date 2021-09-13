@@ -1,10 +1,14 @@
+import logging
 from pathlib import Path
 
 import pytest
 from d2b.d2b import Acquisition
 from d2b.d2b import Description
 from d2b.d2b import FilenameEntities
+from d2b.d2b import IntendedForResolver
 from d2b.d2b import Participant
+from pytest import LogCaptureFixture
+from pytest_mock import MockerFixture
 
 
 class TestFilenameEntities:
@@ -358,7 +362,7 @@ class TestAcquisition:
         expected_dst_root,
         expected_drnm,
     ):
-        acq = Acquisition(Path(), participant, description)
+        acq = Acquisition("", participant, description)
         assert acq.dst_root == expected_dst_root
         assert acq.dst_root_no_modality == expected_drnm
 
@@ -393,164 +397,164 @@ class TestAcquisition:
             d2,
         )
 
-    # def test_init_custom_params(self):
-    #     p = Participant("label01", "session01")
-    #     s = Sidecar("a/b.json", {"a": 1, "b": 2})
-    #     d = "anat"
 
-    #     acq = Acquisition(
-    #         p,
-    #         s,
-    #         d,
-    #         "T1w",
-    #         "task-rest_desc-something",
-    #         {"a": -1, "c": "hello"},
-    #         1,
-    #     )
+class TestIntendedForResolver:
+    def test_init_defaults(self):
+        r = IntendedForResolver()
+        assert r.logger is not None
 
-    #     assert acq.participant == p
-    #     assert acq.sidecar == s
-    #     assert acq.data_type == d
-    #     assert acq.modality_label == "_T1w"
+    def test_init(self):
+        logger = logging.getLogger("test123")
+        logger.setLevel(level=logging.CRITICAL)
+        r = IntendedForResolver(logger)
 
-    #     assert acq.custom_labels == "_task-rest_desc-something"
-    #     assert acq.sidecar_changes == {"a": -1, "c": "hello"}
-    #     assert acq.intended_for == 1
-    #     assert acq.suffix == "_task-rest_desc-something_T1w"
-    #     assert acq.src_root == Path("a/b")
-    #     assert acq.dst_root == Path(
-    #         "sub-label01",
-    #         "ses-session01",
-    #         "anat",
-    #         "sub-label01_ses-session01_task-rest_desc-something_T1w",
-    #     )
+        assert r.logger is logger
 
-    # def test_init_custom_params_variant2(self):
-    #     p = Participant("label01", "session01")
-    #     s = Sidecar("a/b.json", {"a": 1, "b": 2})
-    #     d = "anat"
+    @pytest.mark.parametrize(
+        ("acquisitions", "expected_IntentedFor"),
+        [
+            # empty acquisitions
+            ([], []),
+            # int intended_for, existing target
+            (
+                [
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(12, "fmap", "fmap", intended_for=3),
+                    ),
+                    Acquisition("", Participant("1"), Description(3, "func", "bold")),
+                ],
+                ["func/sub-1_bold.nii.gz", None],
+            ),
+            # str intended_for, existing target
+            (
+                [
+                    Acquisition(
+                        "",
+                        Participant("1", "A"),
+                        Description(100, "fmap", "fmap", intended_for="desc-id"),
+                    ),
+                    Acquisition(
+                        "",
+                        Participant("1", "A"),
+                        Description(21, "func", "bold", data={"id": "desc-id"}),
+                    ),
+                ],
+                ["ses-A/func/sub-1_ses-A_bold.nii.gz", None],
+            ),
+            # (int | str)[] intended_for, existing targets
+            (
+                [
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(21, "func", "bold", data={"id": "desc-id"}),
+                    ),
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(12, "perf", "asl"),
+                    ),
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(100, "fmap", "fmap", intended_for=[12, "desc-id"]),
+                    ),
+                ],
+                # note the order of expected_IntendedFor
+                [None, None, ["perf/sub-1_asl.nii.gz", "func/sub-1_bold.nii.gz"]],
+            ),
+            # int intended_for, non-existant target
+            (
+                [
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(12, "fmap", "fmap", intended_for=3),
+                    ),
+                    Acquisition("", Participant("1"), Description(1, "func", "bold")),
+                ],
+                [None, None],
+            ),
+            # str intended_for, non-existant target
+            (
+                [
+                    Acquisition(
+                        "",
+                        Participant("1", "A"),
+                        Description(100, "fmap", "fmap", intended_for="desc-id"),
+                    ),
+                ],
+                [None],
+            ),
+            # (int | str)[] intended_for, non-existant targets
+            (
+                [
+                    Acquisition("", Participant("1"), Description(13, "func", "bold")),
+                    Acquisition(
+                        "",
+                        Participant("1"),
+                        Description(100, "fmap", "fmap", intended_for=[12, "desc-id"]),
+                    ),
+                ],
+                # note the order of expected_IntendedFor
+                [None, None],
+            ),
+        ],
+    )
+    def test_resolve(self, mocker: MockerFixture, acquisitions, expected_IntentedFor):
+        mocker.patch("d2b.d2b.associated_nii_ext").return_value = ".nii.gz"
 
-    #     acq = Acquisition(
-    #         p,
-    #         s,
-    #         d,
-    #         "T1w",
-    #         {"task": "rest", "desc": "something"},
-    #         {"a": -1, "c": "hello"},
-    #         [2, 3],
-    #     )
+        resolver = IntendedForResolver()
+        resolved_acqs = resolver.resolve(acquisitions)
 
-    #     assert acq.participant == p
-    #     assert acq.sidecar == s
-    #     assert acq.data_type == d
-    #     assert acq.modality_label == "_T1w"
+        for acq, expected in zip(resolved_acqs, expected_IntentedFor):
+            assert acq.data.get("IntendedFor") == expected
 
-    #     assert acq.custom_labels == "_task-rest_desc-something"
-    #     assert acq.sidecar_changes == {"a": -1, "c": "hello"}
-    #     assert acq.intended_for == [2, 3]
-    #     assert acq.suffix == "_task-rest_desc-something_T1w"
-    #     assert acq.src_root == Path("a/b")
-    #     assert acq.dst_root == Path(
-    #         "sub-label01",
-    #         "ses-session01",
-    #         "anat",
-    #         "sub-label01_ses-session01_task-rest_desc-something_T1w",
-    #     )
+    def test_existing_target_acquisition_but_no_associated_nii_file(
+        self,
+        mocker: MockerFixture,
+        caplog: LogCaptureFixture,
+    ):
+        # associated_nii_ext finds the associated nii and returns the
+        # file's extension, if no associated nii is found then we get
+        # None, so we patch that function to return None to simulate
+        # there not being an associated nii file.
+        mocker.patch("d2b.d2b.associated_nii_ext").return_value = None
 
-    # def test_acqs_with_same_params_are_equal(self):
-    #     acq1 = Acquisition(
-    #         Participant("label01", "session01"),
-    #         Sidecar("a/b.json", {"a": 1, "b": 2}),
-    #         "anat",
-    #         "T1w",
-    #     )
+        acquisitions = [
+            Acquisition(
+                "a.json",
+                Participant("1"),
+                Description(12, "fmap", "fmap", intended_for=3),
+            ),
+            Acquisition(
+                "target.json",
+                Participant("1"),
+                Description(3, "func", "bold"),
+            ),
+        ]
 
-    #     acq2 = Acquisition(
-    #         Participant("label01", "session01"),
-    #         Sidecar("a/b.json", {"a": 1, "b": 2}),
-    #         "anat",
-    #         "T1w",
-    #     )
+        resolver = IntendedForResolver()
+        resolver.resolve(acquisitions)
 
-    #     assert acq1 == acq2
+        assert any(
+            "No NIfTI file associated with file [target.json]." in msg
+            for _, _, msg in caplog.record_tuples
+        )
 
+    def test_bad_intended_for_type_raises_ValueError(self, mocker: MockerFixture):
+        mocker.patch("d2b.d2b.associated_nii_ext").return_value = ".nii.gz"
 
-# class TestDcm2niix:
-#     def test_init_with_defaults(self):
-#         d2n = Dcm2niix("a/in/", "b/out/")
+        acquisitions = [
+            Acquisition(
+                "a.json",
+                Participant("1"),
+                Description(12, "fmap", "", intended_for={"k": "v"}),  # type: ignore
+            ),
+        ]
 
-#         assert d2n.dcm_dir == Path("a/in/")
-#         assert d2n.nii_dir == Path("b/out/")
-#         assert d2n.options == {}
-#         assert d2n.subprocess_run_kwargs == {
-#             "check": True,
-#             "text": True,
-#             "capture_output": True,
-#         }
-
-#     def test_init(self):
-#         d2n = Dcm2niix("a/in/", "b/out/", {"--option": "opt-val", "-a": "b"})
-
-#         assert d2n.dcm_dir == Path("a/in/")
-#         assert d2n.nii_dir == Path("b/out/")
-#         assert d2n.options == {"--option": "opt-val", "-a": "b"}
-
-#     def test_run_with_defaults(self, mocker: MockerFixture):
-#         sp_run_mock = mocker.patch("subprocess.run")
-
-#         d2n = Dcm2niix("a/in/", "b/out/")
-
-#         d2n.run()
-
-#         assert d2n.completed_process
-#         sp_run_mock.assert_called_with(
-#             ("dcm2niix", "-o", "b/out", "a/in"),
-#             check=True,
-#             text=True,
-#             capture_output=True,
-#         )
-
-#     def test_run(self, mocker: MockerFixture):
-#         sp_run_mock = mocker.patch("subprocess.run")
-
-#         d2n = Dcm2niix(
-#             "a/in/",
-#             "b/out/",
-#             {"-a": "1", "-b": "value with space"},
-#             {"check": False},
-#         )
-
-#         d2n.run()
-
-#         assert d2n.completed_process
-#         sp_run_mock.assert_called_with(
-#             ("dcm2niix", "-a", "1", "-b", "value with space", "-o", "b/out", "a/in"),
-#             check=False,
-#         )
-
-#     def test_help(self, mocker: MockerFixture):
-#         help_text = "Stuff\nMore stuff v0.0.0\nBlah"
-#         sp_run_mock = mocker.patch("subprocess.run")
-#         sp_run_mock.return_value.stdout = help_text
-
-#         res = Dcm2niix.help()
-
-#         assert isinstance(res, str) and res == help_text
-#         sp_run_mock.assert_called_with(
-#             ("dcm2niix",),
-#             text=True,
-#             capture_output=True,
-#         )
-
-#     def test_version(self, mocker: MockerFixture):
-#         sp_run_mock = mocker.patch("subprocess.run")
-#         sp_run_mock.return_value.stdout = "Stuff\nMore stuff v0.0.0\nBlah"
-
-#         version = Dcm2niix.version()
-
-#         assert version == "v0.0.0"
-#         sp_run_mock.assert_called_with(
-#             ("dcm2niix",),
-#             text=True,
-#             capture_output=True,
-#         )
+        resolver = IntendedForResolver()
+        with pytest.raises(ValueError):
+            resolver.resolve(acquisitions)
