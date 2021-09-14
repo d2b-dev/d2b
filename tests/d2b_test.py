@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+import filecmp
+import json
 import logging
 from pathlib import Path
 
 import pytest
+from d2b.d2b import __version__
 from d2b.d2b import Acquisition
+from d2b.d2b import D2B
 from d2b.d2b import Description
 from d2b.d2b import FilenameEntities
 from d2b.d2b import IntendedForResolver
@@ -288,6 +294,17 @@ class TestParticipant:
     def test_repr_empty_session(self):
         participant = Participant("label01")
         assert str(participant) == "Participant('label01', '')"
+
+    def test_equality(self):
+        p1 = Participant("a", "1")
+        p2 = Participant("a", "1")
+        p3 = Participant("b")
+
+        assert p1 == p2
+        assert p1 != p3
+
+    def test_is_hashable(self):
+        assert hash(Participant("a"))
 
 
 class TestAcquisition:
@@ -662,7 +679,6 @@ class TestMatcher:
         mocker.patch("d2b.d2b.pm").hook.is_link.side_effect = patched_links
 
         matcher = Matcher(files, Participant("a", "1"), descriptions)
-
         acquisitions = matcher.run()
 
         # check that we got as many matches as we expected (since we're
@@ -684,3 +700,139 @@ class TestMatcher:
             # check that no run deduping happened
             for acq in acquisitions:
                 assert "run" not in str(acq.dst_root)
+
+
+class TestD2b:
+    def test_init(self):
+        in_dirs = ["in1/", Path("in2/")]
+        out_dir = "out"
+        config_file = Path("config.json")
+        subject_id = "sub-abc"
+        session = "ses-123"
+        options = {"a": 1}
+
+        d2b = D2B(in_dirs, out_dir, config_file, subject_id, session, options)
+
+        assert d2b.in_dirs == list(map(Path, in_dirs))
+        assert d2b.out_dir == Path(out_dir)
+        assert d2b.config_file == config_file
+        assert d2b.participant == Participant(subject_id, session)
+        assert d2b.options == options
+
+    def test_load_config(self, mocker: MockerFixture):
+        load_config_mock = mocker.patch("d2b.d2b.pm").hook.load_config
+
+        d2b = D2B([], "a", "c.json", "A")
+        d2b.load_config()
+
+        # check that load config called the associated hook
+        load_config_mock.assert_called_once_with(path=Path("c.json"), d2b=d2b)
+
+    def _check_run_results(
+        self,
+        data_dir: Path,
+        out_dir: Path,
+        sidecar_files: list[str],
+        other_files: list[str],
+    ):
+        """generic checks for all test_run_* methods"""
+        config_file = data_dir / "d2b-config.json"
+        in_dirs = [data_dir / "in"]
+
+        expected_out_dir = data_dir / "out"
+
+        d2b = D2B(in_dirs, out_dir, config_file, "a", "1")
+        d2b.load_config()
+        d2b.run()
+
+        for f in sidecar_files:
+            assert (out_dir / f).exists()
+
+            actual_sidecar = json.loads((out_dir / f).read_text())
+            expected_sidecar = json.loads((expected_out_dir / f).read_text())
+            assert actual_sidecar.pop("D2bVersion") == __version__
+            assert actual_sidecar == expected_sidecar
+
+        for f in other_files:
+            assert (out_dir / f).exists()
+            assert filecmp.cmp(out_dir / f, expected_out_dir / f, shallow=False)
+
+    def test_run_extra_files(self, d2b_run_e2e: Path, tmpdir: str):
+        # test-specific
+        data_dir = d2b_run_e2e / "extra-files"
+        sidecar_files = [
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.json",
+        ]
+        other_files = [
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.bval",
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.bvec",
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.nii.gz",
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.txt",
+        ]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+    def test_run_intended_for_fields(self, d2b_run_e2e: Path, tmpdir: str):
+        # test-specific
+        data_dir = d2b_run_e2e / "intended-for-fields"
+        sidecar_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.json",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-PA_fmap.json",
+            "sub-a/ses-1/fmap/sub-a_ses-1_fmap.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_bold.json",
+            "sub-a/ses-1/anat/sub-a_ses-1_T1w.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-fingertap_bold.json",
+        ]
+        other_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.nii.gz",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-PA_fmap.nii.gz",
+            "sub-a/ses-1/fmap/sub-a_ses-1_fmap.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_bold.nii.gz",
+            "sub-a/ses-1/anat/sub-a_ses-1_T1w.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-fingertap_bold.nii.gz",
+        ]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+    def test_run_intended_for_no_target(self, d2b_run_e2e: Path, tmpdir: str):
+        # test-specific
+        data_dir = d2b_run_e2e / "intended-for-no-target"
+        sidecar_files = ["sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.json"]
+        other_files = ["sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.nii.gz"]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+    def test_run_intended_for_target_has_run(self, d2b_run_e2e: Path, tmpdir: str):
+        # test-specific
+        data_dir = d2b_run_e2e / "intended-for-target-has-run"
+        sidecar_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-1_bold.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-2_bold.json",
+        ]
+        other_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-1_bold.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-2_bold.nii.gz",
+        ]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+    def test_run_no_associated_nii(self, d2b_run_e2e: Path, tmpdir: str):
+        assert 0
+
+    def test_run_no_matches(self, d2b_run_e2e: Path, tmpdir: str):
+        assert 0
+
+    def test_run_non_gzipped(self, d2b_run_e2e: Path, tmpdir: str):
+        assert 0
+
+    def test_run_one_file_multi_desc(self, d2b_run_e2e: Path, tmpdir: str):
+        assert 0
+
+    def test_run_sidecar_changes(self, d2b_run_e2e: Path, tmpdir: str):
+        assert 0
