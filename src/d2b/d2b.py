@@ -30,9 +30,9 @@ T = TypeVar("T")
 class D2B:
     def __init__(
         self,
-        in_dirs: str | Path | list[str | Path],
+        in_dirs: str | Path | list[str] | list[Path],
         out_dir: str | Path,
-        config_file: Path,
+        config_file: str | Path,
         participant: str,
         session: str = defaults.session,
         options: dict[str, Any] = None,  # from the cli
@@ -55,37 +55,15 @@ class D2B:
 
         self._configure_logger()  # logging setup
 
-    @property
-    def in_dirs(self) -> list[Path]:
-        return self._in_dirs
-
-    @in_dirs.setter
-    def in_dirs(self, value: list[Path]):
-        dir_not_found = [d for d in value if not d.is_dir()]
-        if dir_not_found:
-            raise FileNotFoundError(dir_not_found)
-        self._in_dirs = value
-
     def load_config(self):
         self.config = pm.hook.load_config(  # type: ignore
             path=self.config_file,
             d2b=self,
         )
 
-    def pre_run_logs(self):
-        self.logger.info("--- d2b start ---")
-        self.logger.info("OS:version: %s", platform.platform())
-        self.logger.info("python:version: %s", sys.version.replace("\n", ""))
-        self.logger.info("d2b:version: %s", __version__)
-        self.logger.info("participant: %s", self.participant.bids_label)
-        self.logger.info("session: %s", self.participant.bids_session)
-        self.logger.info("config: %s", os.path.realpath(self.config_file))
-        self.logger.info("BIDS directory: %s", os.path.realpath(self.out_dir))
-
-        pm.hook.pre_run_logs(logger=self.logger, d2b=self)  # type: ignore
-
     def run(self):
-        self.pre_run_logs()
+        self._pre_run_logs()
+        self._check_in_dirs_exist()
 
         # make copies of the input directories
         dst_parent = self.d2b_dir / "src"
@@ -113,7 +91,7 @@ class D2B:
             Description.from_dict(i, d)
             for i, d in enumerate(self.config["descriptions"])
         ]
-        self.check_descriptions(self.descriptions)
+        self._check_for_effectively_nonunique_descriptions(self.descriptions)
 
         # run the matching algorithm
         self.matcher = Matcher(
@@ -127,7 +105,7 @@ class D2B:
 
         # resolve IntendedFor Fields
         resolver = IntendedForResolver(logger=self.logger)
-        self.acquistions = resolver.resolve(unresolved_acquisitions)
+        self.acquisitions = resolver.resolve(unresolved_acquisitions)
 
         # run pre-move hooks
         self.logger.info("Running pre-move hooks")
@@ -160,9 +138,34 @@ class D2B:
             d2b=self,
         )
 
-    def check_descriptions(self, descriptions: list[Description]):
+    def _pre_run_logs(self):
+        self.logger.info("--- d2b start ---")
+        self.logger.info("OS:version: %s", platform.platform())
+        self.logger.info("python:version: %s", sys.version.replace("\n", ""))
+        self.logger.info("d2b:version: %s", __version__)
+        self.logger.info("participant: %s", self.participant.bids_label)
+        self.logger.info("session: %s", self.participant.bids_session)
+        self.logger.info("config: %s", os.path.realpath(self.config_file))
+        self.logger.info("BIDS directory: %s", os.path.realpath(self.out_dir))
+
+        pm.hook.pre_run_logs(logger=self.logger, d2b=self)  # type: ignore
+
+    def _check_in_dirs_exist(self):
+        dir_not_found = [d for d in self.in_dirs if not d.is_dir()]
+        if dir_not_found:
+            raise FileNotFoundError(dir_not_found)
+
+    def _check_for_effectively_nonunique_descriptions(
+        self,
+        descriptions: list[Description],
+    ):
         agg: dict[Description, list[Description]] = defaultdict(list)
         for d in descriptions:
+            # NOTE: this "non-uniqueness" detection procedure relies on
+            # the fact that desc1 == desc2 iff they have the same hash
+            # (since `d` is being used as a dict key), which is
+            # determined by hashing the tuple containing data_type,
+            # modality_label, and custom_labels
             agg[d].append(d)
 
         for ds in agg.values():
@@ -317,30 +320,63 @@ class IntendedForResolver:
         # set in self.resolve()
         self.acquisitions: list[Acquisition]
 
-    def resolve(self, acquisitions: list[Acquisition] = None) -> list[Acquisition]:
+    def resolve(  # noqa: C901
+        self,
+        acquisitions: list[Acquisition] = None,
+    ) -> list[Acquisition]:
         self.acquisitions = acquisitions or []
         for acq in self.acquisitions:
             description = acq.description
             intended_for = description.intended_for
 
             if intended_for is None:
+                # this description does not contain an IntendedFor property
                 continue
 
             elif isinstance(intended_for, int) or isinstance(intended_for, str):
-                fp = self._resolve_intended_for_path(acq, intended_for)
-                if fp is None:
+                # IntendedFor is a single item (int | str)
+                fps = self._resolve_intended_for_paths(acq, intended_for)
+                if fps is None:
+                    # the target acquisition was not found
                     continue
-                acq.data["IntendedFor"] = str(fp)
+
+                if isinstance(fps, Path):
+                    # one target acquisition was found
+                    acq.data["IntendedFor"] = str(fps)
+                elif isinstance(fps, list):
+                    # multiple target acqs were found for this item
+                    acq.data["IntendedFor"] = [str(fp) for fp in fps]
+                else:
+                    # something went wrong ...
+                    raise TypeError(
+                        "Expected resolved IntendedFor paths to be Path | "
+                        f"Path[] | None. Found [{fps!r}]",
+                    )
 
             elif isinstance(intended_for, list):
+                # IntendedFor is a list
                 for _intended_for in intended_for:
-                    fp = self._resolve_intended_for_path(acq, _intended_for)
-                    if fp is None:
+                    fps = self._resolve_intended_for_paths(acq, _intended_for)
+                    if fps is None:
+                        # none of the target acquisitions were found
                         continue
                     if acq.data.get("IntendedFor") is None:
+                        # IntendedFor has not yet been initialized
                         acq.data["IntendedFor"] = []
-                    acq.data["IntendedFor"].append(str(fp))
 
+                    if isinstance(fps, Path):
+                        # one target acq was found for this item
+                        acq.data["IntendedFor"].append(str(fps))
+                    elif isinstance(fps, list):
+                        # multiple target acqs were found for this item
+                        if isinstance(fps, Path):
+                            acq.data["IntendedFor"].extend([str(fp) for fp in fps])
+                    else:
+                        # something went wrong ...
+                        raise TypeError(
+                            "Expected resolved IntendedFor paths to be Path | "
+                            f"Path[] | None. Found [{fps!r}]",
+                        )
             else:
                 raise ValueError(
                     f"Invalid IntendedFor value [{intended_for}] in "
@@ -349,26 +385,40 @@ class IntendedForResolver:
 
         return self.acquisitions
 
-    def _resolve_intended_for_path(
+    def _resolve_intended_for_paths(
         self,
         acq: Acquisition,
         intended_for: int | str,
-    ) -> Path | None:
-        target_acq = self._resolve_intended_for(self.acquisitions, intended_for)
-        if target_acq is None:
+    ) -> Path | list[Path] | None:
+        target_acqs = self._resolve_intended_for(self.acquisitions, intended_for)
+        if target_acqs is None:
             return
-        ext = associated_nii_ext(target_acq.src_file)
-        if ext is None:
-            self._log_associated_nii_not_found(acq, target_acq)
-            return
-        bids_path = target_acq.dst_root.with_suffix(ext)
-        return bids_path.relative_to(target_acq.participant.subject_directory)
+        if len(target_acqs) == 1:
+            target_acq = target_acqs[0]
+            ext = associated_nii_ext(target_acq.src_file)
+            if ext is None:
+                self._log_associated_nii_not_found(acq, target_acq)
+                return
+            bids_path = target_acq.dst_root.with_suffix(ext)
+            return bids_path.relative_to(target_acq.participant.subject_directory)
+        else:
+            paths: list[Path] = []
+            for target_acq in target_acqs:
+                ext = associated_nii_ext(target_acq.src_file)
+                if ext is None:
+                    self._log_associated_nii_not_found(acq, target_acq)
+                    return
+                bids_path = target_acq.dst_root.with_suffix(ext)
+                paths.append(
+                    bids_path.relative_to(target_acq.participant.subject_directory),
+                )
+            return paths
 
     @staticmethod
     def _resolve_intended_for(
         acquisitions: list[Acquisition],
         intended_for: int | str,
-    ) -> Acquisition | None:
+    ) -> list[Acquisition] | None:
         if isinstance(intended_for, int):
             match_refs = [
                 a for a in acquisitions if a.description.index == intended_for
@@ -391,7 +441,7 @@ class IntendedForResolver:
             # skip adding this IntendedFor to the sidecar's data.
             return
 
-        return match_refs[0]
+        return match_refs
 
     def _log_associated_nii_not_found(self, acq: Acquisition, target_acq: Acquisition):
         msg = (
@@ -459,6 +509,12 @@ class Participant:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.label!r}, {self.session!r})"
+
+    def __eq__(self, o):
+        return self.label == o.label and self.session == o.session
+
+    def __hash__(self):
+        return hash((self.label, self.session))
 
     # getters/setters
     @property
