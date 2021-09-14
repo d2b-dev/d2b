@@ -1,0 +1,23 @@
+{
+  "descriptions": [
+    {
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "rest"
+      },
+      "criteria": {
+        "ProtocolName": "*resting*"
+      }
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "customLabels": "dir-AP",
+      "criteria": {
+        "ProtocolName": "*fmap1_*"
+      },
+      "IntendedFor": 0
+    }
+  ]
+}

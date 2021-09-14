@@ -1,0 +1,12 @@
+{
+  "descriptions": [
+    {
+      "dataType": "dwi",
+      "modalityLabel": "dwi",
+      "criteria": {
+        "filename": "*a*",
+        "ProtocolName": "*a*"
+      }
+    }
+  ]
+}

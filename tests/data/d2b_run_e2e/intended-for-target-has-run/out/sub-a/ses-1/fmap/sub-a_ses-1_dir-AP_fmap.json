@@ -1,0 +1,7 @@
+{
+  "ProtocolName": "fmap1_scan",
+  "IntendedFor": [
+    "ses-1/func/sub-a_ses-1_task-rest_run-1_bold.nii.gz",
+    "ses-1/func/sub-a_ses-1_task-rest_run-2_bold.nii.gz"
+  ]
+}

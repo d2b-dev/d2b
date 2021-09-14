@@ -1,0 +1,67 @@
+{
+  "descriptions": [
+    {
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "rest"
+      },
+      "criteria": {
+        "ProtocolName": "*resting*"
+      }
+    },
+    {
+      "id": "my-func",
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "fingertap"
+      },
+      "criteria": {
+        "ProtocolName": "*task*"
+      }
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "customLabels": "dir-AP",
+      "criteria": {
+        "ProtocolName": "*fmap1_*"
+      },
+      "IntendedFor": [
+        0,
+        1
+      ]
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "customLabels": {
+        "dir": "PA"
+      },
+      "criteria": {
+        "ProtocolName": "*fmap2_*"
+      },
+      "IntendedFor": [
+        0,
+        "my-func"
+      ]
+    },
+    {
+      "id": "my-anat",
+      "dataType": "anat",
+      "modalityLabel": "T1w",
+      "criteria": {
+        "ProtocolName": "*t1*"
+      }
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "criteria": {
+        "ProtocolName": "*fmap3_*"
+      },
+      "IntendedFor": "my-anat"
+    }
+  ]
+}

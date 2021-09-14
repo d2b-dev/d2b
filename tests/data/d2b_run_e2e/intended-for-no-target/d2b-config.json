@@ -1,0 +1,37 @@
+{
+  "descriptions": [
+    {
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "rest"
+      },
+      "criteria": {
+        "ProtocolName": "*I_wont_match*"
+      }
+    },
+    {
+      "id": "my-func",
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "fingertap"
+      },
+      "criteria": {
+        "ProtocolName": "*neither_will_I*"
+      }
+    },
+    {
+      "dataType": "fmap",
+      "modalityLabel": "fmap",
+      "customLabels": "dir-AP",
+      "criteria": {
+        "ProtocolName": "*fmap1_*"
+      },
+      "IntendedFor": [
+        0,
+        1
+      ]
+    }
+  ]
+}
