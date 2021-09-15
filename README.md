@@ -2,7 +2,7 @@
 
 Organize data in the BIDS format.
 
-[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/)
+[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/) [![codecov](https://codecov.io/gh/d2b-dev/d2b/branch/master/graph/badge.svg?token=B83CY7Z0NL)](https://codecov.io/gh/d2b-dev/d2b)
 
 Compatible with `dcm2bids` config files.
 
