@@ -1,0 +1,14 @@
+{
+  "descriptions": [
+    {
+      "dataType": "func",
+      "modalityLabel": "bold",
+      "customLabels": {
+        "task": "rest"
+      },
+      "criteria": {
+        "ProtocolName": "*resting*"
+      }
+    }
+  ]
+}

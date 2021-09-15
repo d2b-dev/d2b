@@ -822,17 +822,122 @@ class TestD2b:
 
         self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
 
-    def test_run_no_associated_nii(self, d2b_run_e2e: Path, tmpdir: str):
-        assert 0
+    def test_run_no_associated_nii(
+        self,
+        d2b_run_e2e: Path,
+        tmpdir: str,
+        caplog: LogCaptureFixture,
+    ):
+        data_dir = d2b_run_e2e / "no-associated-nii"
+        config_file = data_dir / "d2b-config.json"
+        in_dirs = [data_dir / "in"]
+        out_dir = Path(tmpdir) / "bids"
 
-    def test_run_no_matches(self, d2b_run_e2e: Path, tmpdir: str):
-        assert 0
+        d2b = D2B(in_dirs, out_dir, config_file, "a", "1")
+        d2b.load_config()
+        d2b.run()
+
+        session_dir = out_dir / "sub-a/ses-1"
+        assert session_dir.exists()
+        assert len(list(session_dir.rglob("*.json"))) == 1
+        assert len(list(session_dir.rglob("*..nii.gz"))) == 0
+
+        messagesubstr = (
+            "No associated nii found for acquisition derived from file [t1.json]"
+        )
+        assert _produced_log(caplog, logging.WARNING, messagesubstr)
+
+    def test_run_no_matches(
+        self,
+        d2b_run_e2e: Path,
+        tmpdir: str,
+        caplog: LogCaptureFixture,
+    ):
+        data_dir = d2b_run_e2e / "no-matches"
+        config_file = data_dir / "d2b-config.json"
+        in_dirs = [data_dir / "in"]
+        out_dir = Path(tmpdir) / "bids"
+
+        d2b = D2B(in_dirs, out_dir, config_file, "a", "1")
+        d2b.load_config()
+        d2b.run()
+
+        session_dir = out_dir / "sub-a/ses-1"
+        assert not session_dir.exists()
+        assert len(list(session_dir.rglob("*.json"))) == 0
+        assert len(list(session_dir.rglob("*..nii.gz"))) == 0
+
+        messagesubstr = "NO DESCRIPTIONS MATCHED ANY FILES"
+        assert _produced_log(caplog, logging.WARNING, messagesubstr)
 
     def test_run_non_gzipped(self, d2b_run_e2e: Path, tmpdir: str):
-        assert 0
+        # test-specific
+        data_dir = d2b_run_e2e / "non-gzipped"
+        sidecar_files = [
+            "sub-a/ses-1/anat/sub-a_ses-1_T1w.json",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.json",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-PA_fmap.json",
+            "sub-a/ses-1/fmap/sub-a_ses-1_fmap.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-fingertap_bold.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_bold.json",
+        ]
+        other_files = [
+            "sub-a/ses-1/anat/sub-a_ses-1_T1w.nii.gz",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.nii",
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-PA_fmap.nii",
+            "sub-a/ses-1/fmap/sub-a_ses-1_fmap.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-fingertap_bold.nii",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_bold.nii",
+        ]
+        out_dir = Path(tmpdir) / "bids"
 
-    def test_run_one_file_multi_desc(self, d2b_run_e2e: Path, tmpdir: str):
-        assert 0
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+    def test_run_one_file_multi_desc(
+        self,
+        d2b_run_e2e: Path,
+        tmpdir: str,
+        caplog: LogCaptureFixture,
+    ):
+        data_dir = d2b_run_e2e / "one-file-multi-desc"
+        config_file = data_dir / "d2b-config.json"
+        in_dirs = [data_dir / "in"]
+        out_dir = Path(tmpdir) / "bids"
+
+        d2b = D2B(in_dirs, out_dir, config_file, "a", "1")
+        d2b.load_config()
+        d2b.run()
+
+        assert _produced_log(
+            caplog,
+            logging.WARNING,
+            "matched [2] descriptions. Skipping. Matching descriptions [0, 1]",
+        )
+        assert _produced_log(
+            caplog,
+            logging.WARNING,
+            "description [0] dataType [anat] modality [_T1w]",
+        )
+        assert _produced_log(
+            caplog,
+            logging.WARNING,
+            "description [1] dataType [anat] modality [_T1w]",
+        )
+        ses_dir = out_dir / "sub-a/ses-1"
+        assert not (ses_dir).exists()
+        assert len(list(f for f in (ses_dir).rglob("*") if f.is_file())) == 0
 
     def test_run_sidecar_changes(self, d2b_run_e2e: Path, tmpdir: str):
-        assert 0
+        # test-specific
+        data_dir = d2b_run_e2e / "non-gzipped"
+        sidecar_files = ["sub-a/ses-1/anat/sub-a_ses-1_T1w.json"]
+        other_files = ["sub-a/ses-1/anat/sub-a_ses-1_T1w.nii.gz"]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
+
+def _produced_log(caplog: LogCaptureFixture, levelno: int, messagesubstr: str) -> bool:
+    return any(
+        r for r in caplog.records if r.levelno == levelno and messagesubstr in r.message
+    )

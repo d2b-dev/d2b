@@ -1,0 +1,12 @@
+{
+  "descriptions": [
+    {
+      "id": "my-anat",
+      "dataType": "anat",
+      "modalityLabel": "T1w",
+      "criteria": {
+        "ProtocolName": "*t1*"
+      }
+    }
+  ]
+}

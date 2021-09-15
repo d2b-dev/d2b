@@ -1,0 +1,7 @@
+{
+  "ProtocolName": "fmap2_scan",
+  "IntendedFor": [
+    "ses-1/func/sub-a_ses-1_task-rest_bold.nii",
+    "ses-1/func/sub-a_ses-1_task-fingertap_bold.nii"
+  ]
+}

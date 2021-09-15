@@ -1,0 +1,26 @@
+{
+  "descriptions": [
+    {
+      "id": "my-anat",
+      "dataType": "anat",
+      "modalityLabel": "T1w",
+      "customLabels": {
+        "label": "firstDescription"
+      },
+      "criteria": {
+        "ProtocolName": "*t1*"
+      }
+    },
+    {
+      "id": "my-anat",
+      "dataType": "anat",
+      "modalityLabel": "T1w",
+      "customLabels": {
+        "label": "secondDescription"
+      },
+      "criteria": {
+        "ProtocolName": "*t1*"
+      }
+    }
+  ]
+}
