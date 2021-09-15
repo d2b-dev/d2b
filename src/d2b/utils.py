@@ -126,16 +126,16 @@ def first_nii(fp: str | Path) -> Path | None:
         >>> with preloaded_tempdir(files, suffix='my_test_dir') as d:
         ...     nii_file = first_nii(d / 'a.json')
         ...
-        >>> print(nii_file)
-        /var/...my_test_dir/a.nii.gz
+        >>> print(nii_file.name)
+        a.nii.gz
         >>>
         >>> # --- non-gzipped nii files
         >>> files = ['a.json', 'a.nii', 'b.nii']
         >>> with preloaded_tempdir(files, suffix='my_test_dir') as d:
         ...     nii_file = first_nii(d / 'a.json')
         ...
-        >>> print(nii_file)
-        /var/...my_test_dir/a.nii
+        >>> print(nii_file.name)
+        a.nii
         >>>
         >>> # --- no match
         >>> files = ['a.json', 'a.txt', 'b.txt']
