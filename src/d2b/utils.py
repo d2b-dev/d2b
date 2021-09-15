@@ -107,6 +107,44 @@ def associated_nii_ext(fp: str | Path) -> str | None:
 
 
 def first_nii(fp: str | Path) -> Path | None:
+    """Returns the first .nii[.gz] file found which shares a stem with `fp`
+
+    Examples:
+        >>> import contextlib, tempfile
+        >>> from pathlib import Path
+        >>> # --- a helper function
+        >>> @contextlib.contextmanager
+        ... def preloaded_tempdir(files, **kwargs):
+        ...     with tempfile.TemporaryDirectory(**kwargs) as d:
+        ...         for fn in files:
+        ...             _ = (Path(d) / fn).write_text('')
+        ...         yield Path(d)
+        ...
+        >>>
+        >>> # --- gzipped nii files
+        >>> files = ['a.json', 'a.nii.gz', 'b.nii.gz']
+        >>> with preloaded_tempdir(files, suffix='my_test_dir') as d:
+        ...     nii_file = first_nii(d / 'a.json')
+        ...
+        >>> print(nii_file)
+        /var/...my_test_dir/a.nii.gz
+        >>>
+        >>> # --- non-gzipped nii files
+        >>> files = ['a.json', 'a.nii', 'b.nii']
+        >>> with preloaded_tempdir(files, suffix='my_test_dir') as d:
+        ...     nii_file = first_nii(d / 'a.json')
+        ...
+        >>> print(nii_file)
+        /var/...my_test_dir/a.nii
+        >>>
+        >>> # --- no match
+        >>> files = ['a.json', 'a.txt', 'b.txt']
+        >>> with preloaded_tempdir(files, suffix='my_test_dir') as d:
+        ...     nii_file = first_nii(d / 'a.json')
+        ...
+        >>> print(nii_file)
+        None
+    """
     root, _ = splitext(fp)
     niis = sorted(root.parent.glob(f"{root.stem}.nii*"))
     return niis[0] if len(niis) else None

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from d2b import defaults
 from d2b.hookspecs import hookimpl
 from d2b.utils import compare
+from d2b.utils import first_nii
 from d2b.utils import splitext
 
 if TYPE_CHECKING:
@@ -76,6 +77,15 @@ def is_link(
 
 
 @hookimpl
+def pre_move(
+    acquisitions: list[Acquisition],
+    d2b: D2B,
+):
+    if len(acquisitions) == 0:
+        d2b.logger.warning("NO DESCRIPTIONS MATCHED ANY FILES")
+
+
+@hookimpl
 def move(out_dir: Path, acquisition: Acquisition, d2b: D2B):
     from d2b.d2b import __version__
 
@@ -89,6 +99,12 @@ def move(out_dir: Path, acquisition: Acquisition, d2b: D2B):
     src_parent = acquisition.src_root.parent
     src_stem = acquisition.src_root.name
     src_files = [fp for fp in src_parent.rglob(f"{src_stem}.*") if fp.is_file()]
+
+    if not first_nii(acquisition.src_file):
+        # this json file does not have an associated .nii.gz
+        filename = acquisition.src_file.name
+        m = f"No associated nii found for acquisition derived from file [{filename}]"
+        d2b.logger.warning(m)
 
     dst_files: list[Path] = []
     for src in src_files:
