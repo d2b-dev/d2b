@@ -330,7 +330,7 @@
               },
               "MagneticFieldStrength": {
                 "type": "number",
-                "default": 3
+                "default": 0
               },
               "Manufacturer": {
                 "type": "string",
@@ -352,7 +352,23 @@
                 "type": "string",
                 "default": ""
               },
+              "DeviceSerialNumber": {
+                "type": "string",
+                "default": ""
+              },
+              "StationName": {
+                "type": "string",
+                "default": ""
+              },
+              "BodyPartExamined": {
+                "type": "string",
+                "default": ""
+              },
               "PatientPosition": {
+                "type": "string",
+                "default": ""
+              },
+              "ProcedureStepDescription": {
                 "type": "string",
                 "default": ""
               },
@@ -380,10 +396,6 @@
                 "type": "string",
                 "default": ""
               },
-              "ScanOptions": {
-                "type": "string",
-                "default": ""
-              },
               "SequenceName": {
                 "type": "string",
                 "default": ""
@@ -398,95 +410,190 @@
               },
               "SeriesNumber": {
                 "type": "number",
-                "default": 1
+                "default": 0
               },
               "AcquisitionTime": {
                 "type": "string",
                 "default": ""
               },
               "AcquisitionNumber": {
+                "type": "number",
+                "default": 0
+              },
+              "SliceThickness": {
+                "type": "number",
+                "default": 0
+              },
+              "SpacingBetweenSlices": {
+                "type": "number",
+                "default": 0
+              },
+              "SAR": {
+                "type": "number",
+                "default": 0.0
+              },
+              "EchoTime": {
+                "type": "number",
+                "default": 0.0
+              },
+              "RepetitionTime": {
+                "type": "number",
+                "default": 0
+              },
+              "FlipAngle": {
+                "type": "number",
+                "default": 0
+              },
+              "PartialFourier": {
+                "type": "number",
+                "default": 0
+              },
+              "Interpolation2D": {
+                "type": "number",
+                "default": 0
+              },
+              "BaseResolution": {
+                "type": "number",
+                "default": 0
+              },
+              "ShimSetting": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "number",
+                  "default": 0
+                }
+              },
+              "TxRefAmp": {
+                "type": "number",
+                "default": 0.0
+              },
+              "PhaseResolution": {
+                "type": "number",
+                "default": 0
+              },
+              "ReceiveCoilName": {
                 "type": "string",
                 "default": ""
+              },
+              "ReceiveCoilActiveElements": {
+                "type": "string",
+                "default": ""
+              },
+              "PulseSequenceDetails": {
+                "type": "string",
+                "default": ""
+              },
+              "ConsistencyInfo": {
+                "type": "string",
+                "default": ""
+              },
+              "PercentPhaseFOV": {
+                "type": "number",
+                "default": 0
+              },
+              "PhaseEncodingSteps": {
+                "type": "number",
+                "default": 0
+              },
+              "AcquisitionMatrixPE": {
+                "type": "number",
+                "default": 0
+              },
+              "ReconMatrixPE": {
+                "type": "number",
+                "default": 0
+              },
+              "PixelBandwidth": {
+                "type": "number",
+                "default": 0
+              },
+              "DwellTime": {
+                "type": "number",
+                "default": 0.0
+              },
+              "PhaseEncodingDirection": {
+                "type": "string",
+                "default": ""
+              },
+              "ImageOrientationPatientDICOM": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "number",
+                  "default": 0
+                }
+              },
+              "InPlanePhaseEncodingDirectionDICOM": {
+                "type": "string",
+                "default": ""
+              },
+              "ConversionSoftware": {
+                "type": "string",
+                "default": ""
+              },
+              "ConversionSoftwareVersion": {
+                "type": "string",
+                "default": ""
+              },
+              "ScanOptions": {
+                "type": "string",
+                "default": ""
+              },
+              "InversionTime": {
+                "type": "number",
+                "default": 0
+              },
+              "ParallelReductionFactorInPlane": {
+                "type": "number",
+                "default": 0
+              },
+              "EchoTrainLength": {
+                "type": "number",
+                "default": 0
+              },
+              "BandwidthPerPixelPhaseEncode": {
+                "type": "number",
+                "default": 0.0
+              },
+              "EffectiveEchoSpacing": {
+                "type": "number",
+                "default": 0.0
+              },
+              "DerivedVendorReportedEchoSpacing": {
+                "type": "number",
+                "default": 0.0
+              },
+              "TotalReadoutTime": {
+                "type": "number",
+                "default": 0.0
+              },
+              "SliceTiming": {
+                "type": "array",
+                "default": [],
+                "items": {
+                  "type": "number",
+                  "default": 0.0
+                }
+              },
+              "RawImage": {
+                "type": "boolean",
+                "default": true,
+                "examples": [
+                  false
+                ]
               },
               "ImageComments": {
                 "type": "string",
                 "default": ""
               },
-              "SliceThickness": {
-                "type": "string",
-                "default": ""
-              },
-              "SpacingBetweenSlices": {
-                "type": "string",
-                "default": ""
-              },
-              "SAR": {
-                "type": "string",
-                "default": ""
-              },
-              "EchoTime": {
-                "type": "string",
-                "default": ""
-              },
-              "RepetitionTime": {
-                "type": "string",
-                "default": ""
-              },
-              "FlipAngle": {
-                "type": "string",
-                "default": ""
-              },
-              "PartialFourier": {
-                "type": "string",
-                "default": ""
-              },
-              "BaseResolution": {
-                "type": "string",
-                "default": ""
-              },
               "MultibandAccelerationFactor": {
-                "type": "integer",
-                "default": 1
+                "type": "number",
+                "default": 0
               },
-              "EchoTrainLength": {
-                "type": "string",
-                "default": ""
-              },
-              "PhaseEncodingSteps": {
-                "type": "string",
-                "default": ""
-              },
-              "AcquisitionMatrixPE": {
-                "type": "string",
-                "default": ""
-              },
-              "ReconMatrixPE": {
-                "type": "string",
-                "default": ""
-              },
-              "BandwidthPerPixelPhaseEncode": {
-                "type": "string",
-                "default": ""
-              },
-              "EffectiveEchoSpacing": {
-                "type": "string",
-                "default": ""
-              },
-              "TotalReadoutTime": {
-                "type": "string",
-                "default": ""
-              },
-              "PixelBandwidth": {
-                "type": "string",
-                "default": ""
-              },
-              "DwellTime": {
-                "type": "string",
-                "default": ""
-              },
-              "PhaseEncodingDirection": {
-                "type": "string",
-                "default": ""
+              "VendorReportedEchoSpacing": {
+                "type": "number",
+                "default": 0.0
               }
             },
             "additionalProperties": true
