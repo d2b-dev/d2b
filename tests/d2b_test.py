@@ -703,9 +703,9 @@ class TestMatcher:
 
 
 class TestD2b:
-    def test_init(self):
+    def test_init(self, tmpdir: str):
         in_dirs = ["in1/", Path("in2/")]
-        out_dir = "out"
+        out_dir = Path(tmpdir) / "out"
         config_file = Path("config.json")
         subject_id = "sub-abc"
         session = "ses-123"
@@ -719,10 +719,10 @@ class TestD2b:
         assert d2b.participant == Participant(subject_id, session)
         assert d2b.options == options
 
-    def test_load_config(self, mocker: MockerFixture):
+    def test_load_config(self, mocker: MockerFixture, tmpdir: str):
         load_config_mock = mocker.patch("d2b.d2b.pm").hook.load_config
 
-        d2b = D2B([], "a", "c.json", "A")
+        d2b = D2B([], tmpdir, "c.json", "a")
         d2b.load_config()
 
         # check that load config called the associated hook
@@ -840,7 +840,7 @@ class TestD2b:
         session_dir = out_dir / "sub-a/ses-1"
         assert session_dir.exists()
         assert len(list(session_dir.rglob("*.json"))) == 1
-        assert len(list(session_dir.rglob("*..nii.gz"))) == 0
+        assert len(list(session_dir.rglob("*.nii.gz"))) == 0
 
         messagesubstr = (
             "No associated nii found for acquisition derived from file [t1.json]"
