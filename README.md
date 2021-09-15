@@ -2,7 +2,7 @@
 
 Organize data in the BIDS format.
 
-[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/) [![codecov](https://codecov.io/gh/d2b-dev/d2b/branch/master/graph/badge.svg?token=B83CY7Z0NL)](https://codecov.io/gh/d2b-dev/d2b)
+[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/) [![codecov](https://codecov.io/gh/d2b-dev/d2b/branch/master/graph/badge.svg?token=B83CY7Z0NL)](https://codecov.io/gh/d2b-dev/d2b) [![Tests](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml) [![Code Style](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml)[![Type Check](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml)
 
 Compatible with `dcm2bids` config files.
 
@@ -103,6 +103,42 @@ Differences:
 - Out of the box `defaceTpl` is no longer supported.
 
 <!-- ## Config File Schema -->
+
+## Writing config files
+
+To make writing `d2b` config files easier, we've included a [JSON schema](https://json-schema.org/) specification file ([schema.json](https://github.com/d2b-dev/d2b/blob/master/json-schemas/schema.json)). You can use this file in editors that support JSON Schema definitions to provide autocompletion:
+
+<!-- markdownlint-disable MD033 -->
+<div style="display: flex; align-items: center; justify-content: space-between;">
+  <img src="https://raw.githubusercontent.com/d2b-dev/d2b/master/assets/autocomplete1.png" width="40%"/>
+  <img src="https://raw.githubusercontent.com/d2b-dev/d2b/master/assets/autocomplete2.png" width="40%"/>
+</div>
+<!-- markdownlint-enable MD033 -->
+
+as well as validation while you edit your config files:
+
+<!-- markdownlint-disable MD033 -->
+<div style="display: flex; align-items: center; justify-content: space-between;">
+  <img src="https://raw.githubusercontent.com/d2b-dev/d2b/master/assets/validation.png" width="40%"/>
+</div>
+<!-- markdownlint-enable MD033 -->
+
+For example, with vscode you might create/add to your `.vscode/settings.json` file in the workspace to include:
+
+```text
+{
+  // ... other settings ...
+
+  "json.schemas": [
+    {
+      "fileMatch": ["*d2b-config*.json"],
+      "url": "https://raw.githubusercontent.com/d2b-dev/d2b/master/json-schemas/schema.json"
+    }
+  ]
+}
+```
+
+Having this setting enabled would mean that any file matching `*d2b-config*.json` would be validated against the latest JSON schema in the [`d2b` repo](https://github.com/d2b-dev/d2b/blob/master/json-schemas/schema.json)
 
 ## The plugin system
 
