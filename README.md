@@ -245,3 +245,14 @@ HELLO, ANDREW!
 ```
 
 Success! 🏆
+
+## Contributing
+
+1. Have or install a recent version of `poetry` (version >= 1.1)
+1. Fork the repo
+1. Setup a virtual environment (however you prefer)
+1. Run `poetry install`
+1. Run `pre-commit install`
+1. Add your changes (adding/updating tests is always nice too)
+1. Commit your changes + push to your fork
+1. Open a PR
