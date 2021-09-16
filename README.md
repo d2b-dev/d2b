@@ -2,7 +2,7 @@
 
 Organize data in the BIDS format.
 
-[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/) [![codecov](https://codecov.io/gh/d2b-dev/d2b/branch/master/graph/badge.svg?token=B83CY7Z0NL)](https://codecov.io/gh/d2b-dev/d2b) [![Tests](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml) [![Code Style](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml)[![Type Check](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml)
+[![PyPI Version](https://img.shields.io/pypi/v/d2b.svg)](https://pypi.org/project/d2b/) [![codecov](https://codecov.io/gh/d2b-dev/d2b/branch/master/graph/badge.svg?token=B83CY7Z0NL)](https://codecov.io/gh/d2b-dev/d2b) [![Tests](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/test.yaml) [![Code Style](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/lint.yaml) [![Type Check](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml/badge.svg)](https://github.com/d2b-dev/d2b/actions/workflows/type-check.yaml)
 
 Compatible with `dcm2bids` config files.
 
