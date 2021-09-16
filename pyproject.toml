@@ -34,7 +34,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.8.0,<4.0"
 pluggy = ">=0.12,<1.0.0a1"
-pytest-cov = "^2.12.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.7b0"
@@ -45,6 +44,7 @@ pre-commit = "^2.14.0"
 bump2version = "^1.0.1"
 pytest = "^6.2.4"
 pytest-mock = "^3.6.1"
+pytest-cov = "^2.12.1"
 
 [tool.poetry.scripts]
 d2b = 'd2b.cli:main'
