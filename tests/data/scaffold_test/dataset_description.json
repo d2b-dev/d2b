@@ -1,0 +1,22 @@
+{
+  "Name": "a",
+  "BIDSVersion": "b",
+  "DatasetType": "derived",
+  "License": "c",
+  "Authors": [
+    "d"
+  ],
+  "Acknowledgements": "e",
+  "HowToAcknowledge": "f",
+  "Funding": [
+    "g"
+  ],
+  "EthicsApprovals": [
+    "h"
+  ],
+  "ReferencesAndLinks": [
+    "i"
+  ],
+  "DatasetDOI": "k",
+  "HEDVersion": "l"
+}
