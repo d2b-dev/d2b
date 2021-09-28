@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import re
+from io import BytesIO
 from pathlib import Path
 
 import pytest
 from d2b.utils import associated_nii_ext
 from d2b.utils import compare
+from d2b.utils import md5
+from d2b.utils import md5_from_file
+from d2b.utils import md5_from_string
 from d2b.utils import rsync
 from pytest_mock import MockerFixture
 
@@ -89,3 +93,23 @@ def test_associated_nii_ext(
     ext = associated_nii_ext(tmppath / test_file)
 
     assert expected == ext
+
+
+def test_chunked_md5():
+    b = BytesIO(b"Hello world")
+    digest = md5(b).hexdigest()
+
+    assert digest == "3e25960a79dbc69b674cd4ec67a72c62"
+
+
+def test_md5_from_file(tmpdir: str):
+    fp = Path(tmpdir) / "t.txt"
+    fp.write_bytes(b"Hello world")
+
+    digest = md5_from_file(fp).hexdigest()
+    assert digest == "3e25960a79dbc69b674cd4ec67a72c62"
+
+
+def test_md5_from_string():
+    digest = md5_from_string("Hello world").hexdigest()
+    assert digest == "3e25960a79dbc69b674cd4ec67a72c62"
