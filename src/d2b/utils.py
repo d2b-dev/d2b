@@ -59,10 +59,21 @@ def prepend(value: str, char="_"):
     return value if value.startswith(char) else f"{char}{value}"
 
 
-def rsync(src: str | Path, dst: str | Path) -> Path:
-    """Thin wrapper around the 'rsync' command line tool."""
+def rsync(src: str | Path, dst: str | Path, delete: bool = False) -> Path:
+    """Thin wrapper around the 'rsync' command line tool.
+
+    Args:
+        src (str | Path): The source directory to synchronize.
+        dst (str | Path): The destination directory to synchronize to.
+        delete (bool): Whether to delete extraneous files from the
+            receiving side (`dst`) (default: False)
+    """
     _src, _dst = Path(src), Path(dst)
-    subprocess.run(["rsync", "-ac", f"{_src}/", f"{_dst}/"], check=True)
+    cmd = ("rsync", "-ac")
+    if delete:
+        cmd += ("--delete",)
+    cmd += (f"{_src}/", f"{_dst}/")
+    subprocess.run(cmd, check=True)
     return _dst
 
 
