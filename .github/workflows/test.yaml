@@ -30,7 +30,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          pytest --doctest-modules --cov=d2b --cov-report=term-missing --cov-report=xml src/ tests/
+          pytest --doctest-modules --cov=src/ --cov-report=term-missing --cov-report=xml src/ tests/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
