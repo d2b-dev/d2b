@@ -4,7 +4,6 @@ import itertools
 import logging
 import os
 import platform
-import shutil
 import sys
 from collections import defaultdict
 from copy import deepcopy
@@ -159,9 +158,7 @@ class D2B:
     def _create_tmpdir_for(self, directory: str | Path, work_dir: str | Path) -> Path:
         tmpdir_name = self._generate_tmpdir_name(directory)
         tmpdir = Path(work_dir) / f"{self.participant.directory}" / tmpdir_name
-        if tmpdir.is_dir():
-            shutil.rmtree(tmpdir)
-        tmpdir.mkdir(parents=True)
+        tmpdir.mkdir(exist_ok=True, parents=True)
         return tmpdir
 
     def _generate_tmpdir_name(self, d: str | Path) -> str:
