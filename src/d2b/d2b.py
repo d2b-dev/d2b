@@ -17,6 +17,7 @@ from typing import TypeVar
 from d2b import defaults
 from d2b.plugins import pm
 from d2b.utils import associated_nii_ext
+from d2b.utils import md5_from_string
 from d2b.utils import prepend
 from d2b.utils import rsync
 from d2b.utils import splitext
@@ -67,12 +68,11 @@ class D2B:
 
         # make copies of the input directories
         dst_parent = self.d2b_dir / "src"
-        for i, in_dir in enumerate(self.in_dirs):
-            dst_dir = dst_parent / f"{self.participant.directory}" / f"folder{i:02}"
-            dst_dir.mkdir(exist_ok=True, parents=True)
+        for in_dir in self.in_dirs:
+            dst_dir = self._create_tmpdir_for(in_dir, dst_parent)
             msg = f"Copying folder [{in_dir}] to temporary location [{dst_dir}]"
             self.logger.info(msg)
-            rsync(in_dir, dst_dir)
+            rsync(in_dir, dst_dir, delete=True)
 
         # collect files for description-matching
         self.logger.info("Collecting files")
@@ -154,6 +154,18 @@ class D2B:
         dir_not_found = [d for d in self.in_dirs if not d.is_dir()]
         if dir_not_found:
             raise FileNotFoundError(dir_not_found)
+
+    def _create_tmpdir_for(self, directory: str | Path, work_dir: str | Path) -> Path:
+        tmpdir_name = self._generate_tmpdir_name(directory)
+        tmpdir = Path(work_dir) / f"{self.participant.directory}" / tmpdir_name
+        tmpdir.mkdir(exist_ok=True, parents=True)
+        return tmpdir
+
+    def _generate_tmpdir_name(self, d: str | Path) -> str:
+        abspath = Path(d).expanduser().resolve()
+        digest = md5_from_string(str(abspath)).hexdigest()
+        short_hash = digest[:7]
+        return short_hash
 
     def _check_for_effectively_nonunique_descriptions(
         self,

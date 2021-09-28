@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import re
 import subprocess
 from fnmatch import fnmatch
+from io import BytesIO
 from pathlib import Path
+from typing import BinaryIO
 
 from d2b import defaults
 
@@ -56,10 +59,21 @@ def prepend(value: str, char="_"):
     return value if value.startswith(char) else f"{char}{value}"
 
 
-def rsync(src: str | Path, dst: str | Path) -> Path:
-    """Thin wrapper around the 'rsync' command line tool."""
+def rsync(src: str | Path, dst: str | Path, delete: bool = False) -> Path:
+    """Thin wrapper around the 'rsync' command line tool.
+
+    Args:
+        src (str | Path): The source directory to synchronize.
+        dst (str | Path): The destination directory to synchronize to.
+        delete (bool): Whether to delete extraneous files from the
+            receiving side (`dst`) (default: False)
+    """
     _src, _dst = Path(src), Path(dst)
-    subprocess.run(["rsync", "-ac", f"{_src}/", f"{_dst}/"], check=True)
+    cmd = ("rsync", "-ac")
+    if delete:
+        cmd += ("--delete",)
+    cmd += (f"{_src}/", f"{_dst}/")
+    subprocess.run(cmd, check=True)
     return _dst
 
 
@@ -148,3 +162,20 @@ def first_nii(fp: str | Path) -> Path | None:
     root, _ = splitext(fp)
     niis = sorted(root.parent.glob(f"{root.stem}.nii*"))
     return niis[0] if len(niis) else None
+
+
+def md5(f: BinaryIO) -> hashlib._Hash:
+    md5_hash = hashlib.md5()
+    for byte_block in iter(lambda: f.read(4096), b""):
+        md5_hash.update(byte_block)
+    return md5_hash
+
+
+def md5_from_file(fp: str | Path) -> hashlib._Hash:
+    with open(fp, "rb") as f:
+        return md5(f)
+
+
+def md5_from_string(s: str) -> hashlib._Hash:
+    b = BytesIO(s.encode("utf8"))
+    return md5(b)
