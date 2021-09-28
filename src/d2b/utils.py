@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import re
 import subprocess
 from fnmatch import fnmatch
+from io import BytesIO
 from pathlib import Path
+from typing import BinaryIO
 
 from d2b import defaults
 
@@ -148,3 +151,20 @@ def first_nii(fp: str | Path) -> Path | None:
     root, _ = splitext(fp)
     niis = sorted(root.parent.glob(f"{root.stem}.nii*"))
     return niis[0] if len(niis) else None
+
+
+def md5(f: BinaryIO) -> hashlib._Hash:
+    md5_hash = hashlib.md5()
+    for byte_block in iter(lambda: f.read(4096), b""):
+        md5_hash.update(byte_block)
+    return md5_hash
+
+
+def md5_from_file(fp: str | Path) -> hashlib._Hash:
+    with open(fp, "rb") as f:
+        return md5(f)
+
+
+def md5_from_string(s: str) -> hashlib._Hash:
+    b = BytesIO(s.encode("utf8"))
+    return md5(b)
