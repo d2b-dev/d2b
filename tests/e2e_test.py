@@ -70,6 +70,18 @@ class TestE2e:
         self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
 
     def test_cli_scaffold(self, tmpdir: str):
+        scaffold_files = ["CHANGES", "README", "dataset_description.json"]
+        scaffold_directories = ["code", "derivatives"]
+
+        subprocess.run(("d2b", "scaffold", tmpdir))
+
+        for f in scaffold_files:
+            assert (Path(tmpdir) / f).is_file()
+
+        for d in scaffold_directories:
+            assert (Path(tmpdir) / d).is_dir()
+
+    def test_cli_scaffold_with_participants_table(self, tmpdir: str):
         scaffold_files = [
             "CHANGES",
             "README",
@@ -79,7 +91,7 @@ class TestE2e:
         ]
         scaffold_directories = ["code", "derivatives"]
 
-        subprocess.run(("d2b", "scaffold", tmpdir))
+        subprocess.run(("d2b", "scaffold", "--with-participants-table", tmpdir))
 
         for f in scaffold_files:
             assert (Path(tmpdir) / f).is_file()

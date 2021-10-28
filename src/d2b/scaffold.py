@@ -12,9 +12,11 @@ from typing import TextIO
 
 @dataclass
 class DatasetDescription:
+    _DATASET_TYPE_DEFAULT = "raw"
+
     name: str = ""
     bids_version: str = ""
-    dataset_type: str = "raw"
+    dataset_type: str = _DATASET_TYPE_DEFAULT
     license: str = ""
     authors: list[str] = field(default_factory=lambda: [""])
     acknowledgements: str = ""
@@ -30,7 +32,7 @@ class DatasetDescription:
         return cls(
             name=d.get("Name", ""),
             bids_version=d.get("BIDSVersion", ""),
-            dataset_type=d.get("DatasetType", ""),
+            dataset_type=d.get("DatasetType", cls._DATASET_TYPE_DEFAULT),
             license=d.get("License", ""),
             authors=d.get("Authors") or [""],
             acknowledgements=d.get("Acknowledgements", ""),
