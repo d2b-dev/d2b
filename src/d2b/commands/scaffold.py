@@ -47,7 +47,7 @@ def create_scaffold_parser(subparsers: argparse._SubParsersAction | None):
         "--dataset-type",
         dest="DatasetType",
         choices=("raw", "derived"),
-        default="raw",
+        default=DatasetDescription._DATASET_TYPE_DEFAULT,
         help="The DatasetType field.",
     )
     dataset_description_group.add_argument(
