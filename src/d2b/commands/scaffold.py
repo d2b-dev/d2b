@@ -26,6 +26,13 @@ def create_scaffold_parser(subparsers: argparse._SubParsersAction | None):
         type=Path,
         help="Output BIDS directory",
     )
+    _parser.add_argument(
+        "-p",
+        "--with-participants-table",
+        action="store_true",
+        default=False,
+        help="Include the generation of basic participants.{tsv,json} files.",
+    )
 
     # dataset description options
     dataset_description_group = _parser.add_argument_group(
@@ -116,13 +123,14 @@ def create_scaffold_parser(subparsers: argparse._SubParsersAction | None):
 
 def handler(args: argparse.Namespace):
     out_dir: Path = args.out_dir
+    with_participants_table: bool = args.with_participants_table
 
     # create the directories required by BIDS
     for d in _get_scaffold_bids_dirnames():
         (out_dir / d).mkdir(exist_ok=True)
 
     # create the files required by BIDS
-    for f in _get_scaffold_bids_filenames():
+    for f in _get_scaffold_bids_filenames(with_participants_table):
         shutil.copyfile(_get_scaffold_template_dir() / f, out_dir / f)
 
     # create + modify the CHANGES file
@@ -139,14 +147,11 @@ def _get_scaffold_bids_dirnames() -> list[str]:
     return ["code", "derivatives", "sourcedata"]
 
 
-def _get_scaffold_bids_filenames() -> list[str]:
-    f = [
-        "participants.json",
-        "participants.tsv",
-        "README",
-        ".bidsignore",
-    ]
-    return f
+def _get_scaffold_bids_filenames(with_participants_table: bool = False) -> list[str]:
+    fns = ["README", ".bidsignore"]
+    if with_participants_table:
+        fns.extend(["participants.json", "participants.tsv"])
+    return fns
 
 
 def _get_scaffold_template_dir() -> Path:
