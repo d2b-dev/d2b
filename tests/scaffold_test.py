@@ -51,6 +51,22 @@ class TestDatasetDescription:
         assert d.hed_version == "l"
 
     def test_from_dict(self):
+        d = DatasetDescription.from_dict({})
+
+        assert d.name == ""
+        assert d.bids_version == ""
+        assert d.dataset_type == "raw"
+        assert d.license == ""
+        assert d.authors == [""]
+        assert d.acknowledgements == ""
+        assert d.how_to_acknowledge == ""
+        assert d.funding == [""]
+        assert d.ethics_approvals == [""]
+        assert d.references_and_links == [""]
+        assert d.dataset_doi == ""
+        assert d.hed_version == ""
+
+    def test_from_dict_non_empty(self):
         data = {
             "Name": "a",
             "BIDSVersion": "b",
