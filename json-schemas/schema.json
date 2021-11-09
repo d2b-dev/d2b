@@ -41,7 +41,7 @@
             "anotherKey": "anotherValue"
           },
           "criteria": {
-            "filename": "*Resting*"
+            "filepath": "*subdir*/*Resting*"
           }
         },
         {
@@ -51,7 +51,7 @@
             "yetAnotherKey": "yetAnotherValue"
           },
           "criteria": {
-            "filename": "*SomeFmap*"
+            "SidecarFilepath": "*other_subdir*/*SomeFmap*"
           },
           "IntendedFor": [
             1,
@@ -322,6 +322,20 @@
                 "type": "string",
                 "title": "The filename pattern to search for.",
                 "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This field is equivalent to the 'filename' property.",
+                "default": ""
+              },
+              "filepath": {
+                "$id": "#/properties/descriptions/items/properties/criteria/properties/filepath",
+                "type": "string",
+                "title": "The filepath pattern to search for.",
+                "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This will compare against the file's path not just the file's name (c.f. 'filename' or 'SidecarFilename'). This field is equivalent to the 'SidecarFilepath' property.",
+                "default": ""
+              },
+              "SidecarFilepath": {
+                "$id": "#/properties/descriptions/items/properties/criteria/properties/SidecarFilepath",
+                "type": "string",
+                "title": "The filepath pattern to search for.",
+                "description": "The pattern to use to determine if a file/acquisition is eligible to match this description. This will compare against the file's path not just the file's name (c.f. 'filename' or 'SidecarFilename'). This field is equivalent to the 'SidecarFilepath' property.",
                 "default": ""
               },
               "Modality": {
