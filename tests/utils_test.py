@@ -63,6 +63,7 @@ def test_rsync(
 @pytest.mark.parametrize(
     ("name", "pattern", "search_method", "case_sensitive", "expected"),
     [
+        # "filename" strings
         ("Test", "*es*", "fnmatch", True, True),
         ("Test", ".*es.*", "fnmatch", True, False),
         ("TEST", "*es*", "fnmatch", True, False),
@@ -71,12 +72,27 @@ def test_rsync(
         ("TEST", "*es*", "fnmatch", False, True),
         ("Test", "*ab*", "fnmatch", False, False),
         ("Test", ".+es.+", "re", True, True),
-        ("Test", "*es*", "re", True, False),
+        ("Test", "*es*", "re", True, False),  # NOTE: invalid regex
         ("TEST", ".+es.+", "re", True, False),
         ("Test", ".*ab.*", "re", True, False),
         ("Test", ".*es.*", "re", False, True),
         ("TEST", ".*es.*", "re", False, False),
         ("Test", ".*ab.*", "re", False, False),
+        # "filepath" strings
+        ("./parent/folder/Test", "*es*", "fnmatch", True, True),
+        ("./parent/folder/Test", ".*es.*", "fnmatch", True, False),
+        ("./parent/folder/TEST", "*es*", "fnmatch", True, False),
+        ("./parent/folder/Test", "*ab*", "fnmatch", True, False),
+        ("./parent/folder/Test", "*es*", "fnmatch", False, True),
+        ("./parent/folder/TEST", "*es*", "fnmatch", False, True),
+        ("./parent/folder/Test", "*ab*", "fnmatch", False, False),
+        ("./parent/folder/Test", ".+es.+", "re", True, True),
+        ("./parent/folder/Test", "*es*", "re", True, False),  # NOTE: invalid regex
+        ("./parent/folder/TEST", ".+es.+", "re", True, False),
+        ("./parent/folder/Test", ".*ab.*", "re", True, False),
+        ("./parent/folder/Test", ".*es.*", "re", False, True),
+        ("./parent/folder/TEST", ".*es.*", "re", False, False),
+        ("./parent/folder/Test", ".*ab.*", "re", False, False),
     ],
 )
 def test_compare(
