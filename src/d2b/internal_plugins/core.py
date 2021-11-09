@@ -53,6 +53,10 @@ def is_link(
             # check the file name of the sidecar
             result.append(compare(path.name, pattern, search_method, case_sensitive))
 
+        elif tag == "filepath" or tag == "SidecarFilepath":
+            # check the _path_ of the file (this can included )
+            result.append(compare(str(path), pattern, search_method, case_sensitive))
+
         elif isinstance(tagValue, list) and isinstance(pattern, list):
             # check that there's a bijective mapping between the two lists
             matching_length = len(tagValue) == len(pattern)
