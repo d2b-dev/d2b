@@ -75,7 +75,7 @@ optional arguments:
 
 This package offers a pluggable BIDS-ification workflow which attempts to mirror parts of the [`dcm2bids`](https://github.com/UNFmontreal/Dcm2Bids) CLI.
 
-**This most important goal of this package is to support existing `dcm2bids` config files.**
+**One of the most important goals of this package is to support existing `dcm2bids` config files.**
 
 A notable difference between `d2b` and `dcm2bids` is that the default assumption made by `d2b` is that you're **_NOT_** giving it DICOM data as input (although, if this is your use-case, there's a plugin to enable going straight from DICOM -> BIDS).
 
