@@ -673,14 +673,16 @@ class Description:
 
 
 class FilenameEntities:
-    # the order matters (BIDS v1.6 - https://bids-specification.readthedocs.io/en/v1.6.0/99-appendices/09-entities.html#trc) # noqa: E501
+    # the order matters (BIDS v1.7 - https://bids-specification.readthedocs.io/en/v1.7.0/99-appendices/09-entities.html) # noqa: E501
     KNOWN_ENTITIES = (
         "sub",
         "ses",
+        "sample",
         "task",
         "acq",
         "ce",
         "trc",
+        "stain",
         "rec",
         "dir",
         "run",
@@ -690,10 +692,12 @@ class FilenameEntities:
         "inv",
         "mt",
         "part",
-        "recording",
         "proc",
+        "hemi",
         "space",
         "split",
+        "recording",
+        "chunk",
         "res",
         "den",
         "label",
