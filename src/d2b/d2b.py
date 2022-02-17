@@ -580,7 +580,19 @@ class Participant:
 
 
 class Description:
-    DATATYPES = ["anat", "beh", "dwi", "eeg", "fmap", "func", "ieeg", "meg", "perf"]
+    DATATYPES = [
+        "anat",
+        "beh",
+        "dwi",
+        "eeg",
+        "fmap",
+        "func",
+        "ieeg",
+        "meg",
+        "micr",
+        "perf",
+        "pet",
+    ]
 
     def __init__(
         self,
