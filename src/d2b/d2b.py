@@ -10,6 +10,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from typing import cast
 from typing import DefaultDict
 from typing import Iterator
 from typing import TypeVar
@@ -36,7 +37,7 @@ class D2B:
         config_file: str | Path,
         participant: str,
         session: str = defaults.session,
-        options: dict[str, Any] = None,  # from the cli
+        options: dict[str, Any] | None = None,  # from the cli
     ):
         self.config: dict[str, Any]  # set by calling self.load_config()
         self.files: list[Path]  # set in self.run()
@@ -214,9 +215,9 @@ class Matcher:
         files: list[Path],
         participant: Participant,
         descriptions: list[Description],
-        config: dict[str, Any] = None,  # d2b config
-        options: dict[str, Any] = None,  # from the cli
-        logger: logging.Logger = None,
+        config: dict[str, Any] | None = None,  # d2b config
+        options: dict[str, Any] | None = None,  # from the cli
+        logger: logging.Logger | None = None,
     ):
         self.participant = participant
         self.descriptions = descriptions
@@ -242,11 +243,14 @@ class Matcher:
             criteria = description.data.get("criteria")
             if criteria is None:
                 continue
-            possible_link = pm.hook.is_link(  # type: ignore
-                path=fp,
-                criteria=criteria,
-                config=self.config,
-                options=self.options,
+            possible_link = cast(
+                "list[bool]",
+                pm.hook.is_link(  # type: ignore
+                    path=fp,
+                    criteria=criteria,
+                    config=self.config,
+                    options=self.options,
+                ),
             )
             if not any(possible_link):
                 continue
@@ -334,7 +338,7 @@ class IntendedForResolver:
 
     def resolve(  # noqa: C901
         self,
-        acquisitions: list[Acquisition] = None,
+        acquisitions: list[Acquisition] | None = None,
     ) -> list[Acquisition]:
         self.acquisitions = acquisitions or []
         for acq in self.acquisitions:
@@ -355,7 +359,7 @@ class IntendedForResolver:
                 if isinstance(fps, Path):
                     # one target acquisition was found
                     acq.data["IntendedFor"] = str(fps)
-                elif isinstance(fps, list):
+                elif isinstance(fps, list):  # type: ignore
                     # multiple target acqs were found for this item
                     acq.data["IntendedFor"] = [str(fp) for fp in fps]
                 else:
@@ -365,21 +369,21 @@ class IntendedForResolver:
                         f"Path[] | None. Found [{fps!r}]",
                     )
 
-            elif isinstance(intended_for, list):
+            elif isinstance(intended_for, list):  # type: ignore
                 # IntendedFor is a list
                 for _intended_for in intended_for:
                     fps = self._resolve_intended_for_paths(acq, _intended_for)
                     if fps is None:
                         # none of the target acquisitions were found
                         continue
-                    if acq.data.get("IntendedFor") is None:
+                    if "IntendedFor" not in acq.data:
                         # IntendedFor has not yet been initialized
-                        acq.data["IntendedFor"] = []
+                        acq.data["IntendedFor"] = cast("list[str]", [])
 
                     if isinstance(fps, Path):
                         # one target acq was found for this item
                         acq.data["IntendedFor"].append(str(fps))
-                    elif isinstance(fps, list):
+                    elif isinstance(fps, list):  # type: ignore
                         # multiple target acqs were found for this item
                         if isinstance(fps, Path):
                             acq.data["IntendedFor"].extend([str(fp) for fp in fps])
@@ -435,7 +439,7 @@ class IntendedForResolver:
             match_refs = [
                 a for a in acquisitions if a.description.index == intended_for
             ]
-        elif isinstance(intended_for, str):
+        elif isinstance(intended_for, str):  # type: ignore
             match_refs = [
                 a for a in acquisitions if a.description.data.get("id") == intended_for
             ]
@@ -483,15 +487,15 @@ class Acquisition:
         src_file: str | Path,
         participant: Participant,
         description: Description,
-        data: dict[str, Any] = None,
+        data: dict[str, Any] | None = None,
     ):
         self.src_file = Path(src_file)
         self.participant = participant
         self.description = description
         self.data = data or {}
 
-    def __eq__(self, o):
-        return self.dst_root == o.dst_root
+    def __eq__(self, o: Any):
+        return isinstance(o, self.__class__) and self.dst_root == o.dst_root
 
     @property
     def src_root(self) -> Path:
@@ -522,8 +526,12 @@ class Participant:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.label!r}, {self.session!r})"
 
-    def __eq__(self, o):
-        return self.label == o.label and self.session == o.session
+    def __eq__(self, o: Any):
+        return (
+            isinstance(o, self.__class__)
+            and self.label == o.label
+            and self.session == o.session
+        )
 
     def __hash__(self):
         return hash((self.label, self.session))
@@ -602,7 +610,7 @@ class Description:
         custom_labels: str | dict[str, str] = "",
         sidecar_changes: dict[str, Any] | None = None,
         intended_for: int | str | list[int | str] | None = None,
-        data: dict[str, Any] = None,
+        data: dict[str, Any] | None = None,
     ):
         self.index = index
         self.data_type = data_type
@@ -613,8 +621,8 @@ class Description:
         self.intended_for = intended_for
         self.data = data or {}
 
-    def __eq__(self, o):
-        return hash(self) == hash(o)
+    def __eq__(self, o: Any):
+        return isinstance(o, self.__class__) and hash(self) == hash(o)
 
     def __hash__(self):
         return hash((self.data_type, self.modality_label, self.custom_labels))
@@ -770,7 +778,7 @@ class FilenameEntities:
         return "".join(filter(str.isalnum, v))
 
 
-def _setup_logging(log_level, logFile=None):
+def _setup_logging(log_level: str, logFile: str | Path | None = None):
     """Setup logging configuration"""
     logging.basicConfig()
     logger = logging.getLogger()
