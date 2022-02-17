@@ -53,10 +53,7 @@
           "criteria": {
             "SidecarFilepath": "*other_subdir*/*SomeFmap*"
           },
-          "IntendedFor": [
-            1,
-            "my-func-img"
-          ]
+          "IntendedFor": [1, "my-func-img"]
         },
         {
           "dataType": "fmap",
@@ -105,9 +102,7 @@
       ]
     }
   ],
-  "required": [
-    "descriptions"
-  ],
+  "required": ["descriptions"],
   "properties": {
     "searchMethod": {
       "$id": "#/properties/searchMethod",
@@ -115,10 +110,7 @@
       "title": "The search method used by d2b",
       "description": "This field determines how d2b interprets property values found in each crieteria object. If omitted then the search method used is 'fnmatch'.",
       "default": "fnmatch",
-      "enum": [
-        "fnmatch",
-        "re"
-      ]
+      "enum": ["fnmatch", "re"]
     },
     "caseSensitive": {
       "$id": "#/properties/caseSensitive",
@@ -165,11 +157,7 @@
             "IntendedFor": []
           }
         ],
-        "required": [
-          "dataType",
-          "modalityLabel",
-          "criteria"
-        ],
+        "required": ["dataType", "modalityLabel", "criteria"],
         "properties": {
           "id": {
             "$id": "#/properties/descriptions/items/properties/id",
@@ -200,10 +188,7 @@
             "title": "The category of brain data recorded by a file.",
             "description": "This will be used as the suffix for acquisitions matching this description. The modality may overlap with, but should not be confused with the data type.",
             "default": "",
-            "examples": [
-              "T1w",
-              "_bold"
-            ]
+            "examples": ["T1w", "_bold"]
           },
           "customLabels": {
             "$id": "#/properties/descriptions/items/properties/customLabels",
@@ -216,69 +201,31 @@
               {
                 "type": "object",
                 "properties": {
-                  "task": {
-                    "type": "string"
-                  },
-                  "acq": {
-                    "type": "string"
-                  },
-                  "ce": {
-                    "type": "string"
-                  },
-                  "trc": {
-                    "type": "string"
-                  },
-                  "rec": {
-                    "type": "string"
-                  },
-                  "dir": {
-                    "type": "string"
-                  },
-                  "run": {
-                    "type": "string"
-                  },
-                  "mod": {
-                    "type": "string"
-                  },
-                  "echo": {
-                    "type": "string"
-                  },
-                  "flip": {
-                    "type": "string"
-                  },
-                  "inv": {
-                    "type": "string"
-                  },
-                  "mt": {
-                    "type": "string"
-                  },
-                  "part": {
-                    "type": "string"
-                  },
-                  "recording": {
-                    "type": "string"
-                  },
-                  "proc": {
-                    "type": "string"
-                  },
-                  "space": {
-                    "type": "string"
-                  },
-                  "split": {
-                    "type": "string"
-                  },
-                  "res": {
-                    "type": "string"
-                  },
-                  "den": {
-                    "type": "string"
-                  },
-                  "label": {
-                    "type": "string"
-                  },
-                  "desc": {
-                    "type": "string"
-                  },
+                  "sample": { "type": "string" },
+                  "task": { "type": "string" },
+                  "acq": { "type": "string" },
+                  "ce": { "type": "string" },
+                  "trc": { "type": "string" },
+                  "stain": { "type": "string" },
+                  "rec": { "type": "string" },
+                  "dir": { "type": "string" },
+                  "run": { "type": "string" },
+                  "mod": { "type": "string" },
+                  "echo": { "type": "string" },
+                  "flip": { "type": "string" },
+                  "inv": { "type": "string" },
+                  "mt": { "type": "string" },
+                  "part": { "type": "string" },
+                  "proc": { "type": "string" },
+                  "hemi": { "type": "string" },
+                  "space": { "type": "string" },
+                  "split": { "type": "string" },
+                  "recording": { "type": "string" },
+                  "chunk": { "type": "string" },
+                  "res": { "type": "string" },
+                  "den": { "type": "string" },
+                  "label": { "type": "string" },
+                  "desc": { "type": "string" },
                   "additionalProperties": true
                 }
               }
@@ -593,9 +540,7 @@
               "RawImage": {
                 "type": "boolean",
                 "default": true,
-                "examples": [
-                  false
-                ]
+                "examples": [false]
               },
               "ImageComments": {
                 "type": "string",
@@ -628,11 +573,7 @@
               }
             ],
             "default": [],
-            "examples": [
-              0,
-              "",
-              []
-            ]
+            "examples": [0, "", []]
           },
           "aslContext": {
             "$id": "#/properties/descriptions/items/properties/aslContext",
@@ -645,12 +586,7 @@
               "title": "Volume type",
               "description": "Labels for each of the volumes in the ASL acquisition which this description describes.",
               "default": "m0scan",
-              "examples": [
-                "control",
-                "label",
-                "deltam",
-                "cbf"
-              ]
+              "examples": ["control", "label", "deltam", "cbf"]
             }
           }
         },
