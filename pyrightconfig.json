@@ -1,5 +1,0 @@
-{
-  "ignore": [
-    "src/d2b/__dcm2bids.py"
-  ]
-}
