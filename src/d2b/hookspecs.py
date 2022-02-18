@@ -29,17 +29,18 @@ def prepare_run_parser(
     parser: argparse.ArgumentParser,
     required: argparse._ArgumentGroup,
     optional: argparse._ArgumentGroup,
-):
+) -> None:
     """Modify the parser for the 'd2b run ...' command"""
 
 
 @hookspec(firstresult=True)
 def load_config(path: Path, d2b: D2B) -> dict[str, Any]:
     """Load the d2b config file"""
+    ...
 
 
 @hookspec
-def pre_run_logs(logger: logging.Logger, d2b: D2B):
+def pre_run_logs(logger: logging.Logger, d2b: D2B) -> None:
     """Write logs to the console at run start time"""
 
 
@@ -52,6 +53,19 @@ def collect_files(
     d2b: D2B,
 ) -> list[Path]:
     """Provide files to consider for description <-> file matching"""
+    ...
+
+
+@hookspec
+def prepare_collected_files(
+    files: list[Path],
+    out_dir: Path,
+    d2b_dir: Path,
+    config: dict[str, Any],
+    options: dict[str, Any],
+    d2b: D2B,
+) -> None:
+    """Process or manipulate the collected files before description <-> file matching"""
 
 
 @hookspec
@@ -62,6 +76,7 @@ def is_link(
     options: dict[str, Any],
 ) -> bool:
     """Determine if the path matches the criteria"""
+    ...
 
 
 @hookspec
@@ -70,7 +85,7 @@ def pre_move(
     config: dict[str, Any],
     options: dict[str, Any],
     d2b: D2B,
-):
+) -> None:
     """Process an acquisition, after all file <-> description matches have been made,
     but before any of the files/acquisitions have been moved"""
 
@@ -85,6 +100,7 @@ def move(
     d2b: D2B,
 ) -> list[Path]:
     """Move all files associated with this acquisition"""
+    ...
 
 
 @hookspec
@@ -94,5 +110,5 @@ def post_move(
     config: dict[str, Any],
     options: dict[str, Any],
     d2b: D2B,
-):
+) -> None:
     """Process an acquisition, after all files/acquisitions have been moved"""
