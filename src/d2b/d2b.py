@@ -87,6 +87,16 @@ class D2B:
         # each hook returns a list of files
         self.files = sorted(set(itertools.chain(*collected_files)))
 
+        # give hooks the chance to manipulate/"do things" to the collected files
+        pm.hook.prepare_collected_files(  # type: ignore
+            files=self.files,
+            out_dir=self.out_dir,
+            d2b_dir=self.d2b_dir,
+            config=self.config,
+            options=self.options,
+            d2b=self,
+        )
+
         # load the descriptions
         self.descriptions = [
             Description.from_dict(i, d)
