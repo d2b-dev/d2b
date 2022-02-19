@@ -14,8 +14,8 @@ def main():
     run_parser = create_run_parser(subparsers)
     pm.hook.prepare_run_parser(  # type: ignore
         parser=run_parser,
-        required=run_parser._action_groups[0],
-        optional=run_parser._action_groups[1],
+        required=run_parser._action_groups[1],
+        optional=run_parser._action_groups[2],
     )
 
     pm.hook.register_commands(subparsers=subparsers)  # type: ignore
