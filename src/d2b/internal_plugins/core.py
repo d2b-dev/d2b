@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from d2b import defaults
 from d2b.hookspecs import hookimpl
 from d2b.utils import compare
+from d2b.utils import filepath_sort_key
 from d2b.utils import first_nii
 from d2b.utils import splitext
 
@@ -28,6 +29,11 @@ def load_config(path: Path):
 @hookimpl
 def collect_files(d2b_dir: Path) -> list[Path]:
     return list(d2b_dir.rglob("*.json"))
+
+
+@hookimpl(tryfirst=True)
+def prepare_collected_files(files: list[Path]) -> None:
+    files.sort(key=filepath_sort_key)
 
 
 @hookimpl

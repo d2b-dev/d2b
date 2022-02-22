@@ -85,9 +85,10 @@ class D2B:
             d2b=self,
         )
         # each hook returns a list of files
-        self.files = sorted(set(itertools.chain(*collected_files)))
+        self.files = list(set(itertools.chain(*collected_files)))
 
         # give hooks the chance to manipulate/"do things" to the collected files
+        # NOTE: this package uses this hook to sort the filepaths in-place
         pm.hook.prepare_collected_files(  # type: ignore
             files=self.files,
             out_dir=self.out_dir,

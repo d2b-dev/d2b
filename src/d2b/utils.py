@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import subprocess
+import sys
 from fnmatch import fnmatch
 from io import BytesIO
 from pathlib import Path
@@ -179,3 +181,11 @@ def md5_from_file(fp: str | Path) -> hashlib._Hash:
 def md5_from_string(s: str) -> hashlib._Hash:
     b = BytesIO(s.encode("utf8"))
     return md5(b)
+
+
+def filepath_sort_key(fp: Path) -> tuple[int, str]:
+    if fp.suffix == ".json":
+        series_number = json.loads(fp.read_text()).get("SeriesNumber", sys.maxsize)
+        return (int(series_number), str(fp))
+    else:
+        return (sys.maxsize, str(fp))
