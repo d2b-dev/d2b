@@ -23,7 +23,13 @@ def get_plugins():
         >>> from pprint import pp
         >>> plugins = get_plugins()
         >>> pp(sorted([tuple(sorted(p.items())) for p in plugins]))
-        [(('hooks', ['collect_files', 'is_link', 'load_config', 'move', 'pre_move']),
+        [(('hooks',
+           ['collect_files',
+            'is_link',
+            'load_config',
+            'move',
+            'pre_move',
+            'prepare_collected_files']),
           ('name', 'd2b.internal_plugins.core')),
          (('hooks', ['register_commands']), ('name', 'd2b.commands.scaffold'))]
     """
