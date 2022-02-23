@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "d2b"
-version = "1.4.1rc0"
+version = "1.4.1"
 description = "Organize data in the BIDS format"
 authors = ["Andrew Ross <andrew.ross.mail@gmail.com>"]
 
