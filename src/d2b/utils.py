@@ -15,7 +15,7 @@ from d2b import defaults
 
 def splitext(
     path: str | Path,
-    custom_extensions: list[str] = None,
+    custom_extensions: list[str] | None = None,
 ) -> tuple[Path, str]:
     """Split the extension from a pathname.
 
