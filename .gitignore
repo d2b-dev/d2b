@@ -1,4 +1,10 @@
 .vscode
+tmp/
+temp/
+tmp.*
+*.log
+*.png
+*.txt
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
