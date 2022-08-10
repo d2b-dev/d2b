@@ -396,8 +396,7 @@ class IntendedForResolver:
                         acq.data["IntendedFor"].append(str(fps))
                     elif isinstance(fps, list):  # type: ignore
                         # multiple target acqs were found for this item
-                        if isinstance(fps, Path):
-                            acq.data["IntendedFor"].extend([str(fp) for fp in fps])
+                        acq.data["IntendedFor"].extend([str(fp) for fp in fps])
                     else:
                         # something went wrong ...
                         raise TypeError(
