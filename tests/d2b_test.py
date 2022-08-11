@@ -822,6 +822,25 @@ class TestD2b:
 
         self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
 
+    def test_run_intended_for_list_target_has_run(self, d2b_run_e2e: Path, tmpdir: str):
+        # test-specific
+        data_dir = d2b_run_e2e / "intended-for-list-target-has-run"
+        sidecar_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-1_bold.json",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-2_bold.json",
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.json",
+        ]
+        other_files = [
+            "sub-a/ses-1/fmap/sub-a_ses-1_dir-AP_fmap.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-1_bold.nii.gz",
+            "sub-a/ses-1/func/sub-a_ses-1_task-rest_run-2_bold.nii.gz",
+            "sub-a/ses-1/dwi/sub-a_ses-1_dwi.nii.gz",
+        ]
+        out_dir = Path(tmpdir) / "bids"
+
+        self._check_run_results(data_dir, out_dir, sidecar_files, other_files)
+
     def test_run_no_associated_nii(
         self,
         d2b_run_e2e: Path,
